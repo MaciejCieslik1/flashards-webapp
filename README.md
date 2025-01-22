@@ -45,6 +45,12 @@
 
 Schematy ER i model relacyjny są umieszone odpowiednio w plikach <em>er_model.png</em> i <em>relational_model.png</em>.
 
+Wszystkie skrypty sql znajdują się w katalogu <em>database</em>. Pliki 00 i 01 są odpalane automatycznie przy starcie bazy, co zostało określone w Dockerfile.
+
+W projekcie zastosowano dialekt SQL oparty na MySQL. MySQL nie wspiera polecenia SEQUENCE, które jest dostępne w niektórych innych systemach zarządzania bazami danych (np. PostgreSQL). Aby uzyskać automatyczne, rosnące o 1 identyfikatory (id) w tabelach, wykorzystano funkcję AUTO_INCREMENT podczas definiowania kolumn kluczy głównych. Jednakże, na potrzeby projektu zaimplementowano mechanizm sekwencji (SEQUENCES), tyle że są one obecnie zakomentowane w pliku 03 w katalogu database.
+
+Warto również pamiętać, że przed uruchomieniem pliku 03, konieczne jest wcześniejsze wykonanie pliku 02 (zawierającego inserty), który automatycznie wprowadza przykładowe rekordy do bazy danych. Zapewnia to poprawne działanie testów i pozwala na weryfikację funkcjonalności aplikacji w środowisku bazodanowym.
+
 ### Komendy do uruchamiania aplikacji
 - **docker compose down -v --rmi all** - wyłącza kontenery, usuwa pamięć i obrazy.
 - **docker compose up** - uruchamia aplikacje.
@@ -82,3 +88,5 @@ Obszary do ewentualnej poprawy:
 - **Lepsza dokumentacja**: Niektóre tabele (np. Folder_Parent, Folders_Decks) mogłyby skorzystać z bardziej rozbudowanej dokumentacji w kodzie, aby lepiej wyjaśnić ich znaczenie i logikę użycia.
 
 Rozwiązanie jest dobrze przemyślane i odpowiednio dostosowane do specyfikacji aplikacji.  Wprowadzenie drobnych usprawnień, takich jak optymalizacja indeksów czy dopracowanie triggerów, mogłoby jeszcze bardziej zwiększyć jej wydajność i elastyczność.
+
+ZGodni
