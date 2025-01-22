@@ -46,14 +46,14 @@
 Schematy ER i model relacyjny są umieszone odpowiednio w plikach <em>er_model.png</em> i <em>relational_model.png</em>.
 
 ### Komendy do uruchamiania aplikacji
-- **docker compose down -v --rmi all** wyłącza kontenery, usuwa pamięć i obrazy
-- ***docker compose up** uruchamia aplikacje
+- **docker compose down -v --rmi all** - wyłącza kontenery, usuwa pamięć i obrazy.
+- **docker compose up** - uruchamia aplikacje.
 
 ### Uruchamiania skryptów w bazie danych
-1. Uruchomić dockera.
-2. Łączenie się z bazą dzięki dodaniu portu 3306 do docker-compose
-3. Logowanie poprzez hasło springstudent
-4. Odpalenie skryptu w IDE (np. IntelliJ)
+1. Uruchomienie dockera.
+2. Łączenie się z bazą dzięki dodaniu portu 3306 do docker-compose.
+3. Logowanie poprzez hasło springstudent.
+4. Odpalenie skryptu w IDE (np. IntelliJ).
 
 ### Analiza krytyczna bazy danych
 
@@ -75,10 +75,10 @@ Obszary do ewentualnej poprawy:
 
 - **Optymalizacja indeksów**: Chociaż zdefiniowano unikalny indeks dla adresów e-mail (customers_email_unique), brak dodatkowych indeksów może spowolnić zapytania w tabelach o dużej liczbie rekordów, takich jak Review_Logs czy Flashcards.
 
-- **Lepsza dokumentacja**: Niektóre tabele (np. Folder_Parent, Folders_Decks) mogłyby skorzystać z bardziej rozbudowanej dokumentacji w kodzie, aby lepiej wyjaśnić ich znaczenie i logikę użycia.
+- **Implementacja większej liczby wyzwalaczy**, aby zminimalizować ryzyko problemów z integralnością bazy danych.
 
 - **Niepełne zarządzanie danymi wrażliwymi**: password_hash w tabeli Customers jest przechowywane jako VARCHAR. Nie ma wskazówek dotyczących szyfrowania lub hashowania.
 
-- **Implementacja większej liczby wyzwalaczy**, aby zminimalizować ryzyko problemów z integralnością bazy danych.
+- **Lepsza dokumentacja**: Niektóre tabele (np. Folder_Parent, Folders_Decks) mogłyby skorzystać z bardziej rozbudowanej dokumentacji w kodzie, aby lepiej wyjaśnić ich znaczenie i logikę użycia.
 
 Rozwiązanie jest dobrze przemyślane i odpowiednio dostosowane do specyfikacji aplikacji.  Wprowadzenie drobnych usprawnień, takich jak optymalizacja indeksów czy dopracowanie triggerów, mogłoby jeszcze bardziej zwiększyć jej wydajność i elastyczność.
