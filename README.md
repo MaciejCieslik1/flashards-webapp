@@ -1,12 +1,5 @@
 # Temat projektu: Aplikacja webowa do nauki z wykorzystaniem fiszek
 
-### Inspiracje
-- Anki
-- Quizlet
-
-### Architektura
-Zgodnie z wymaganiami projektu wykorzystamy architekturę 3-warstwową, w której baza danych jest oddzielona od logiki biznesowej i interfejsu użytkownika.
-
 ### Zespół
 - Julia Czosnek
 - Kacper Górski
@@ -19,6 +12,7 @@ Zgodnie z wymaganiami projektu wykorzystamy architekturę 3-warstwową, w które
 - **Node.js** – obsługa niektórych procesów, API
 - **Docker** – konteneryzacja aplikacji
 - **Git** – kontrola wersji i współpraca zespołowa
+- **MySQL** - bazy danych
 
 ### Funkcjonalności Aplikacji
 
@@ -47,14 +41,52 @@ Zgodnie z wymaganiami projektu wykorzystamy architekturę 3-warstwową, w które
    - Zamiana przodu fiszki z tyłem
    - Przechowywanie danych w bazie danych
 
-### Dodatkowe Funkcjonalności
+## Część bazodanowa
 
-- Powiadomienia – wysyłane mailem
-- Udostępnianie fiszek – możliwość współdzielenia z innymi użytkownikami
+Schematy ER i model relacyjny są umieszone odpowiednio w plikach <em>er_model.png</em> i <em>relational_model.png</em>.
 
-### Dalsze Pomysły
-- Rankingi użytkowników
+Wszystkie skrypty sql znajdują się w katalogu <em>database</em>. Pliki 00 i 01 są odpalane automatycznie przy starcie bazy, co zostało określone w Dockerfile.
 
-### Przydatne komendy
-- "docker compose down -v --rmi all" wyłącza kontenery, usuwa pamięć i obrazy
-- "docker compose up" uruchamia aplikacje
+W projekcie zastosowano dialekt SQL oparty na MySQL. MySQL nie wspiera polecenia SEQUENCE, które jest dostępne w niektórych innych systemach zarządzania bazami danych (np. PostgreSQL). Aby uzyskać automatyczne, rosnące o 1 identyfikatory (id) w tabelach, wykorzystano funkcję AUTO_INCREMENT podczas definiowania kolumn kluczy głównych. Jednakże, na potrzeby projektu zaimplementowano mechanizm sekwencji (SEQUENCES), tyle że są one obecnie zakomentowane w pliku 03 w katalogu database.
+
+Warto również pamiętać, że przed uruchomieniem pliku 03, konieczne jest wcześniejsze wykonanie pliku 02 (zawierającego inserty), który automatycznie wprowadza przykładowe rekordy do bazy danych. Zapewnia to poprawne działanie testów i pozwala na weryfikację funkcjonalności aplikacji w środowisku bazodanowym.
+
+### Komendy do uruchamiania aplikacji
+- **docker compose down -v --rmi all** - wyłącza kontenery, usuwa pamięć i obrazy.
+- **docker compose up** - uruchamia aplikacje.
+
+### Uruchamiania skryptów w bazie danych
+1. Uruchomienie dockera.
+2. Łączenie się z bazą dzięki dodaniu portu 3306 do docker-compose.
+3. Logowanie poprzez hasło springstudent.
+4. Odpalenie skryptu w IDE (np. IntelliJ).
+
+### Analiza krytyczna bazy danych
+
+Przedstawione rozwiązanie bazy danych wykazuje solidne podstawy projektowe i spełnia wiele kluczowych wymagań dla systemu zarządzania aplikacją Flashcards. W szczególności:
+
+- **Dobrze zorganizowana struktura danych**: Projekt opiera się na dobrze przemyślanym modelu relacyjnym, który uwzględnia wiele funkcjonalności aplikacji, takich jak zarządzanie użytkownikami, ich statystykami, powiadomieniami czy strukturą folderów. Tabele są logicznie podzielone, co zapewnia przejrzystość i skalowalność.
+
+- **Kluczowe relacje i integralność danych**: Zdefiniowano liczne klucze obce, co pomaga utrzymać integralność referencyjną między tabelami. Dzięki temu rozwiązanie minimalizuje ryzyko niespójności w danych, np. usunięcia użytkownika bez usunięcia jego powiązanych rekordów.
+
+- **Obsługa użytkowników i uprawnień**: Implementacja użytkownika <em>springstudent</em> oraz odpowiednie przydzielenie uprawnień to praktyczny krok w stronę kontroli dostępu i testowania bazy w środowisku symulującym rzeczywiste wykorzystanie.
+
+- **Elastyczność i rozszerzalność**: Wiele tabel (np. User_Preferences, Flashcards_Progresses) uwzględnia możliwość personalizacji lub przechowywania danych użytkownika w sposób łatwo rozszerzalny. Takie podejście sprzyja rozwojowi aplikacji i wprowadzaniu nowych funkcji w przyszłości.
+
+- **Dobre praktyki projektowe**: Przyjęto konwencję nadawania tabelom nazw w liczbie mnogiej oraz stosowania intuicyjnych nazw kolumn, co ułatwia orientację w strukturze bazy. Dodatkowo uwzględniono domyślne wartości dla kluczowych pól (enabled, account_locked), co zmniejsza ryzyko błędów w aplikacji.
+
+- **Przemyślana logika biznesowa**: Zdefiniowanie tabel takich jak Friendships, Notifications, czy Review_Logs wskazuje na kompleksowe podejście do modelowania funkcjonalności, takich jak zarządzanie relacjami między użytkownikami, notyfikacjami i postępami w nauce.
+
+Obszary do ewentualnej poprawy:
+
+- **Optymalizacja indeksów**: Chociaż zdefiniowano unikalny indeks dla adresów e-mail (customers_email_unique), brak dodatkowych indeksów może spowolnić zapytania w tabelach o dużej liczbie rekordów, takich jak Review_Logs czy Flashcards.
+
+- **Implementacja większej liczby wyzwalaczy**, aby zminimalizować ryzyko problemów z integralnością bazy danych.
+
+- **Niepełne zarządzanie danymi wrażliwymi**: password_hash w tabeli Customers jest przechowywane jako VARCHAR. Nie ma wskazówek dotyczących szyfrowania lub hashowania.
+
+- **Lepsza dokumentacja**: Niektóre tabele (np. Folder_Parent, Folders_Decks) mogłyby skorzystać z bardziej rozbudowanej dokumentacji w kodzie, aby lepiej wyjaśnić ich znaczenie i logikę użycia.
+
+Rozwiązanie jest dobrze przemyślane i odpowiednio dostosowane do specyfikacji aplikacji.  Wprowadzenie drobnych usprawnień, takich jak optymalizacja indeksów czy dopracowanie triggerów, mogłoby jeszcze bardziej zwiększyć jej wydajność i elastyczność.
+
+ZGodni

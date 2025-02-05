@@ -68,6 +68,8 @@ services:
       - db_user_password
       - db_user_login
       - db_root_password
+    ports:
+      - "3306:3306"
 
 volumes:
   db-data:
