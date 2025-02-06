@@ -1,7 +1,0 @@
-Deck: fruits
-
-Word                 Definition          
-========================================
-apple                jablko
-banana               banan
-orange               pomarancza
