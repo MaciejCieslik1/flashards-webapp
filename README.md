@@ -87,4 +87,4 @@ Obszary do ewentualnej poprawy:
 
 - **Lepsza dokumentacja**: Niektóre tabele (np. Folder_Parent, Folders_Decks) mogłyby skorzystać z bardziej rozbudowanej dokumentacji w kodzie, aby lepiej wyjaśnić ich znaczenie i logikę użycia.
 
-Rozwiązanie jest dobrze przemyślane i odpowiednio dostosowane do specyfikacji aplikacji.  Wprowadzenie drobnych usprawnień, takich jak optymalizacja indeksów czy dopracowanie triggerów, mogłoby jeszcze bardziej zwiększyć jej wydajność i elastyczność.
+Rozwiązanie jest dobrze przemyślane i odpowiednio dostosowane do specyfikacji aplikacji. Wprowadzenie drobnych usprawnień, takich jak optymalizacja indeksów czy dopracowanie triggerów, mogłoby jeszcze bardziej zwiększyć jej wydajność i elastyczność.
