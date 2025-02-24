@@ -9,8 +9,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -21,16 +23,20 @@ public class UserStatisticsMapper {
 
     public UserStatisticsDTO toDTO(Customer customer, UserStatistics userStatistics) {
 
-            int customerId = customer.getId();
+        int customerId = customer.getId();
 
         int daysLearning = userStatistics.getTotalDaysLearning();
-         int longestStreak = userStatistics.getLongestLearningStreak();
-         int currentStreak = userStatistics.getDaysLearningStreak();
-         int allNewCards = flashcardService.countAllNewCards(customerId) ;
-         int allLearningCards = flashcardService.countAllDueCards(customerId);
-         int allRememberedCards = flashcardService.countAllCards(customerId) - allLearningCards -allNewCards;
-         List<LocalDateTime> loginDates = userStatisticsRepository.getGithubStyleChartData(customerId);
+        int longestStreak = userStatistics.getLongestLearningStreak();
+        int currentStreak = userStatistics.getDaysLearningStreak();
+        int allNewCards = flashcardService.countAllNewCards(customerId) ;
+        int allLearningCards = flashcardService.countAllDueCards(customerId);
+        int allRememberedCards = flashcardService.countAllCards(customerId) - allLearningCards -allNewCards;
+        List<LocalDate> loginDates = userStatisticsRepository.getGithubStyleChartData(customerId)
+                .stream()
+                .map(java.sql.Date::toLocalDate)
+                .collect(Collectors.toList());
 
         return new UserStatisticsDTO(daysLearning, longestStreak, currentStreak, allNewCards, allLearningCards, allRememberedCards, loginDates);
     }
 }
+

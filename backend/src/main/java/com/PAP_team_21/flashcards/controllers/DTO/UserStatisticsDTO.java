@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -18,5 +19,5 @@ public class UserStatisticsDTO
     private int allNewCards;
     private int allLearningCards;
     private int allRememberedCards;
-    private List<LocalDateTime> loginDates;
+    private List<LocalDate> loginDates;
 }

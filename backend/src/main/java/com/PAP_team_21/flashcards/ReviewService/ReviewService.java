@@ -9,11 +9,13 @@ import com.PAP_team_21.flashcards.entities.flashcardProgress.FlashcardProgress;
 import com.PAP_team_21.flashcards.entities.flashcardProgress.FlashcardProgressRepository;
 import com.PAP_team_21.flashcards.entities.folder.Folder;
 import com.PAP_team_21.flashcards.entities.reviewLog.ReviewLog;
+import com.PAP_team_21.flashcards.entities.reviewLog.ReviewLogRepository;
 import com.PAP_team_21.flashcards.entities.userStatistics.UserStatisticsRepository;
 import com.nimbusds.jwt.util.DateUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
 
@@ -28,6 +30,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.Period;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -37,6 +40,7 @@ public class ReviewService {
     private final FlashcardProgressRepository flashcardProgressRepository;
 
     private final UserStatisticsRepository userStatisticsRepository;
+    private final ReviewLogRepository reviewLogRepository;
 
     @Value("${scheduling.max_flashcard_learning}")
     private int maxCurrentlyLearning;
@@ -224,20 +228,28 @@ public class ReviewService {
 
     public void flashcardReviewed(Customer customer, Flashcard flashcard, UserAnswer userAnswer) {
 
+        List<LocalDate> loginDates = userStatisticsRepository.getGithubStyleChartData(customer.getId())
+                .stream()
+                .map(java.sql.Date::toLocalDate)
+                .collect(Collectors.toList());
+
+        Optional<LocalDate> newestDateOpt = loginDates.stream()
+                .max(Comparator.naturalOrder());
+        if (newestDateOpt.isPresent()) {
+            customer.getUserStatistics().updateStatistics(newestDateOpt.get());
+        }
+        else
+            customer.getUserStatistics().updateStatistics();
+        userStatisticsRepository.save(customer.getUserStatistics());
+
         ReviewLog rl = new ReviewLog(flashcard,
                 customer,
                 LocalDateTime.now(),
                 userAnswer);
-
+        if (flashcard != null && customer != null && userAnswer != null) {
+            reviewLogRepository.save(rl);
+        }
         Optional<FlashcardProgress> progress = flashcardProgressRepository.findByCustomerAndFlashcard(customer, flashcard);
-
-
-        Optional<LocalDateTime> lastReviewOpt = userStatisticsRepository.findCustomersLastReview(customer.getId());
-        if (lastReviewOpt.isPresent())
-            customer.getUserStatistics().updateStatistics(lastReviewOpt.get());
-        else
-            customer.getUserStatistics().updateStatistics();
-        userStatisticsRepository.save(customer.getUserStatistics());
 
         if(progress.isEmpty())
         {
@@ -246,7 +258,7 @@ public class ReviewService {
                     customer,
                     LocalDateTime.now().plus(Duration.ofMinutes(2)),
                     rl
-                    );
+            );
             flashcardProgressRepository.save(fp);
         }
         else
@@ -255,6 +267,8 @@ public class ReviewService {
             progress.get().setNext_review(getNextReview(progress.get().getLastReviewLog().getWhen(), progress.get().getNext_review(), userAnswer));
             flashcardProgressRepository.save(progress.get());
         }
+
+
 
 
 
