@@ -257,18 +257,17 @@ CREATE PROCEDURE count_decks_new_cards(
     OUT newCardCount INT
 )
 BEGIN
-    SELECT COUNT(DISTINCT fl.id)
+    SET newCardCount = 0;
+    SELECT COUNT(*)
     INTO newCardCount
-    FROM Flashcards fl
-             LEFT JOIN Review_Logs rl ON fl.id = rl.flashcard_id
-    WHERE deck_id = deckId AND rl.user_id = userId AND rl.id IS NULL;
-#     SELECT COUNT(*)
-#     INTO newCardCount
-#     FROM Flashcards fl
-#
-#     LEFT JOIN Review_Logs rl ON fl.id = rl.flashcard_id
-#     WHERE deck_id = deckId AND
-#         (rl.user_id IS NULL or rl.user_id != userId);
+    FROM (
+             SELECT fl.id
+             FROM Flashcards fl
+                      JOIN Review_Logs rl ON fl.id = rl.flashcard_id
+             WHERE fl.deck_id = deckId AND rl.user_id = userId
+             GROUP BY fl.id
+             HAVING COUNT(rl.id) = 1
+         ) AS subquery;
 END //
 
 # =============================================================================
@@ -281,11 +280,15 @@ CREATE PROCEDURE count_all_deck_due_cards(
 BEGIN
     SELECT COUNT(*)
     INTO dueCardCount
-    FROM Flashcards fl
-    JOIN Flashcards_Progresses fp ON fl.id = fp.flashcard_id
-    WHERE fl.deck_id = deckId
-    AND fp.user_id = userId
-    AND fp.next_review <= NOW();
+    FROM (
+            SELECT fl.id
+            FROM Flashcards fl
+               JOIN Flashcards_Progresses fp ON fl.id = fp.flashcard_id
+               JOIN Review_Logs rl ON fl.id = rl.flashcard_id
+            WHERE fl.deck_id = deckId AND fp.user_id = userId AND fp.next_review <= NOW()
+            GROUP BY fl.id
+            HAVING COUNT(rl.id) > 1
+        ) AS subquery;
 END //
 
 # =============================================================================
@@ -363,11 +366,17 @@ CREATE PROCEDURE count_all_new_cards(
     OUT result INT
 )
 BEGIN
-    SELECT COUNT(DISTINCT fl.id)
+    SET result = 0;
+    SELECT COUNT(*)
     INTO result
-    FROM Flashcards fl
-             LEFT JOIN Review_Logs rl ON fl.id = rl.flashcard_id
-    WHERE rl.user_id = userId AND rl.id IS NULL;
+    FROM (
+             SELECT fl.id
+             FROM Flashcards fl
+                      JOIN Review_Logs rl ON fl.id = rl.flashcard_id
+             WHERE rl.user_id = userId
+             GROUP BY fl.id
+             HAVING COUNT(rl.id) = 1
+         ) AS subquery;
 END //
 
 # =============================================================================
@@ -379,12 +388,17 @@ CREATE PROCEDURE count_all_due_cards(
 BEGIN
 SELECT COUNT(*)
 INTO result
-FROM Flashcards fl
-         JOIN Flashcards_Progresses fp ON fl.id = fp.flashcard_id
-WHERE
-  fp.user_id = userId
-  AND fp.next_review <= NOW();
+FROM (
+        SELECT fl.id
+        FROM Flashcards fl
+            JOIN Flashcards_Progresses fp ON fl.id = fp.flashcard_id
+            JOIN Review_Logs rl ON fl.id = rl.flashcard_id
+        WHERE fp.user_id = userId AND fp.next_review <= NOW()
+        GROUP BY fl.id
+        HAVING COUNT(rl.id) > 1
+     ) AS subquery;
 END //
+
 
 # =============================================================================
 
