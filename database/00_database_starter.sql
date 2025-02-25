@@ -68,8 +68,8 @@ CREATE TABLE `Review_Logs`(
                               `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
                               `flashcard_id` INT UNSIGNED NOT NULL,
                               `user_id` INT UNSIGNED NOT NULL,
-                              `when` DATETIME NOT NULL,
-                              `user_answer` TINYINT NOT NULL
+                              `when` DATETIME,
+                              `user_answer` TINYINT
 );
 CREATE TABLE `Folders_Decks`(
                                 `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
