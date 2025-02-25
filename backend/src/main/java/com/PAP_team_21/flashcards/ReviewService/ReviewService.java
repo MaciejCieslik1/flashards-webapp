@@ -233,13 +233,18 @@ public class ReviewService {
                 .map(java.sql.Date::toLocalDate)
                 .collect(Collectors.toList());
 
-        Optional<LocalDate> newestDateOpt = loginDates.stream()
-                .max(Comparator.naturalOrder());
-        if (newestDateOpt.isPresent()) {
-            customer.getUserStatistics().updateStatistics(newestDateOpt.get());
+        if (loginDates.size() == 1) {
+            customer.getUserStatistics().updateStatisticsFirstDay();
         }
-        else
-            customer.getUserStatistics().updateStatistics();
+        else {
+            Optional<LocalDate> newestDateOpt = loginDates.stream()
+                    .max(Comparator.naturalOrder());
+            if (newestDateOpt.isPresent()) {
+                customer.getUserStatistics().updateStatistics(newestDateOpt.get());
+            }
+            else
+                customer.getUserStatistics().updateStatistics();
+        }
         userStatisticsRepository.save(customer.getUserStatistics());
 
         ReviewLog rl = new ReviewLog(flashcard,
