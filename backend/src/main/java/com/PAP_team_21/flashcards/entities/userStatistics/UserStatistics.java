@@ -87,5 +87,12 @@ public class UserStatistics {
         totalDaysLearning++;
     }
 
+    public void updateStatisticsFirstDay()
+    {
+        daysLearningStreak = 1;
+        longestLearningStreak = 1;
+        totalDaysLearning = 1;
+    }
+
 
 }
