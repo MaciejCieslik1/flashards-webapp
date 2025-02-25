@@ -2,22 +2,32 @@ package com.PAP_team_21.flashcards.controllers;
 
 import com.PAP_team_21.flashcards.AccessLevel;
 import com.PAP_team_21.flashcards.Errors.ResourceNotFoundException;
+import com.PAP_team_21.flashcards.UserAnswer;
 import com.PAP_team_21.flashcards.authentication.ResourceAccessLevelService.DeckAccessServiceResponse;
 import com.PAP_team_21.flashcards.authentication.ResourceAccessLevelService.FlashcardAccessServiceResponse;
 import com.PAP_team_21.flashcards.authentication.ResourceAccessLevelService.ResourceAccessService;
 import com.PAP_team_21.flashcards.controllers.requests.FlashcardCreationRequest;
 import com.PAP_team_21.flashcards.controllers.requests.FlashcardUpdateRequest;
 import com.PAP_team_21.flashcards.entities.JsonViewConfig;
+import com.PAP_team_21.flashcards.entities.customer.Customer;
 import com.PAP_team_21.flashcards.entities.customer.CustomerRepository;
 import com.PAP_team_21.flashcards.entities.deck.DeckService;
 import com.PAP_team_21.flashcards.entities.flashcard.Flashcard;
+import com.PAP_team_21.flashcards.entities.flashcard.FlashcardRepository;
 import com.PAP_team_21.flashcards.entities.flashcard.FlashcardService;
+import com.PAP_team_21.flashcards.entities.flashcardProgress.FlashcardProgress;
+import com.PAP_team_21.flashcards.entities.flashcardProgress.FlashcardProgressRepository;
 import com.PAP_team_21.flashcards.entities.folder.FolderJpaRepository;
+import com.PAP_team_21.flashcards.entities.reviewLog.ReviewLog;
+import com.PAP_team_21.flashcards.entities.reviewLog.ReviewLogRepository;
 import com.fasterxml.jackson.annotation.JsonView;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/flashcard")
@@ -26,6 +36,8 @@ public class FlashcardController {
     private final CustomerRepository customerRepository;
     private final DeckService deckService;
     private final FolderJpaRepository folderRepository;
+    private final FlashcardProgressRepository flashcardProgressRepository;
+    private final ReviewLogRepository reviewLogRepository;
     private final FlashcardService flashcardService;
 
     private final ResourceAccessService resourceAccessService;
@@ -52,6 +64,17 @@ public class FlashcardController {
         {
             Flashcard flashcard = new Flashcard(response.getDeck(), request.getFront(), request.getBack());
             flashcardService.save(flashcard);
+
+            String email = authentication.getName();
+            Optional<Customer> customer = customerRepository.findByEmail(email);
+            if (customer.isPresent()) {
+                ReviewLog reviewLog = new ReviewLog(flashcard, customer.get(), LocalDateTime.now(), UserAnswer.FORGOT);
+                reviewLogRepository.save(reviewLog);
+                FlashcardProgress flashcardProgress = new FlashcardProgress(flashcard, customer.get(), LocalDateTime.now(),
+                        reviewLog);
+                flashcardProgressRepository.save(flashcardProgress);
+            }
+
             return ResponseEntity.ok(flashcard);
         }
 
