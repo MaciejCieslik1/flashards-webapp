@@ -22,7 +22,7 @@ public class DeckMapper {
         int toReview = deckService.countDeckAllDueCards(customer.getId(), deck.getId());
         int learnedCards = totalCards - newCards - toReview;
 
-        float progress = (float)learnedCards / (float) totalCards;
+        float progress = (float)learnedCards / (float) totalCards * 100;
 
         return new DeckDTO(deck.getId(), deck.getName(), progress, newCards, toReview, totalCards, learnedCards);
     }
