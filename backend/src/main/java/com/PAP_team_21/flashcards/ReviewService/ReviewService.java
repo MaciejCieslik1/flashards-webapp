@@ -211,18 +211,19 @@ public class ReviewService {
     private  LocalDateTime getNextReview(LocalDateTime lastReview, LocalDateTime previousNextReview, UserAnswer answer)
     {
         // scheduled gap between previous review and next review - related to knowledge of flashcard
-        Duration knowledgeGap = Duration.between(lastReview, previousNextReview);
+        Duration knowledgeGap = Duration.between(previousNextReview, lastReview);
         // how much after scheduled date was flashcard reviewed
-        Duration scheduledGap = Duration.between(LocalDateTime.now(), lastReview);
 
         if(answer.equals(UserAnswer.FORGOT))
         {
-            return LocalDateTime.now().plus(Duration.ofMinutes(1));
+            return LocalDateTime.now().plus(Duration.ofSeconds(1));
         }
 
         Duration tillNextReview = muliplyDurationWithSecondPercision(knowledgeGap, getMultiplier(answer));
-        if(tillNextReview.get(ChronoUnit.YEARS) >= 1)
-            tillNextReview = Duration.of(1L, ChronoUnit.YEARS);
+        if(tillNextReview.toDays() >= 365) {
+            tillNextReview = Duration.ofDays(365);
+        }
+
         return LocalDateTime.now().plus(tillNextReview);
     }
 
