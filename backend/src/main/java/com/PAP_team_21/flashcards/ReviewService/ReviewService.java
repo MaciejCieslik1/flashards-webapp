@@ -229,25 +229,6 @@ public class ReviewService {
 
     public void flashcardReviewed(Customer customer, Flashcard flashcard, UserAnswer userAnswer) {
 
-        List<LocalDate> loginDates = userStatisticsRepository.getGithubStyleChartData(customer.getId())
-                .stream()
-                .map(java.sql.Date::toLocalDate)
-                .collect(Collectors.toList());
-
-        if (loginDates.size() == 1) {
-            customer.getUserStatistics().updateStatisticsFirstDay();
-        }
-        else {
-            Optional<LocalDate> newestDateOpt = loginDates.stream()
-                    .max(Comparator.naturalOrder());
-            if (newestDateOpt.isPresent()) {
-                customer.getUserStatistics().updateStatistics(newestDateOpt.get());
-            }
-            else
-                customer.getUserStatistics().updateStatistics();
-        }
-        userStatisticsRepository.save(customer.getUserStatistics());
-
         ReviewLog rl = new ReviewLog(flashcard,
                 customer,
                 LocalDateTime.now(),

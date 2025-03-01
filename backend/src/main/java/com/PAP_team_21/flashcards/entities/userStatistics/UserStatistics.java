@@ -9,7 +9,11 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name="User_Statistics")
@@ -94,5 +98,43 @@ public class UserStatistics {
         totalDaysLearning = 1;
     }
 
+    public void updateStatisticsCancelStreak()
+    {
+        daysLearningStreak = 1;
+        totalDaysLearning ++;
+    }
 
+
+    public void updateStreak(List<LocalDate> loginDates) {
+        if (loginDates.size() == 1) {
+            updateStatisticsFirstDay();
+        }
+
+        LocalDate today = LocalDate.now();
+        LocalDate yesterday = today.minusDays(1);
+
+        HashMap<LocalDate, Integer> dateOccurrences = new HashMap<>();
+        for (LocalDate loginDate : loginDates) {
+            if (dateOccurrences.containsKey(loginDate)) {
+                dateOccurrences.put(loginDate, dateOccurrences.get(loginDate) + 1);
+            }
+            else {
+                dateOccurrences.put(loginDate, 1);
+            }
+        }
+
+        int todayCount = dateOccurrences.getOrDefault(today, 0);
+        int yesterdayCount = dateOccurrences.getOrDefault(yesterday, 0);
+
+        if (todayCount == 1 && yesterdayCount >= 1) {
+            updateStatistics();
+        }
+        else if (todayCount == 1 && yesterdayCount == 0 && totalDaysLearning == 0) {
+            updateStatisticsCancelStreak();
+        }
+
+        else if (todayCount == 1 && yesterdayCount == 0) {
+            updateStatisticsFirstDay();
+        }
+    }
 }

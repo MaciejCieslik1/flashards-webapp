@@ -9,6 +9,8 @@ import com.PAP_team_21.flashcards.entities.customer.Customer;
 import com.PAP_team_21.flashcards.entities.customer.CustomerRepository;
 import com.PAP_team_21.flashcards.entities.folderAccessLevel.FolderAccessLevel;
 import com.PAP_team_21.flashcards.entities.folderAccessLevel.FolderAccessLevelRepository;
+import com.PAP_team_21.flashcards.entities.login.Login;
+import com.PAP_team_21.flashcards.entities.login.LoginRepository;
 import com.PAP_team_21.flashcards.entities.userPreferences.UserPreferences;
 import com.PAP_team_21.flashcards.entities.userPreferences.UserPreferencesRepository;
 import com.PAP_team_21.flashcards.entities.userStatistics.UserStatistics;
@@ -31,10 +33,13 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -42,6 +47,9 @@ import java.util.Optional;
 public class AuthenticationController {
 
     private final AuthenticationService authenticationService;
+    private final CustomerRepository customerRepository;
+    private final LoginRepository loginRepository;
+    private final UserStatisticsRepository userStatisticsRepository;
 
     @GetMapping("/oauth2/success")
     public  ResponseEntity<?> oauth2Success(Authentication authentication) {
@@ -77,6 +85,22 @@ public class AuthenticationController {
             @RequestBody AuthenticationRequest request
     ){
         try{
+            String email = request.getEmail();
+            Optional<Customer> customerOpt = customerRepository.findByEmail(email);
+            if (customerOpt.isPresent()) {
+                Customer customer = customerOpt.get();
+                Login login = new Login(customer.getId());
+                loginRepository.save(login);
+
+                List<LocalDate> loginDates = userStatisticsRepository.getGithubStyleChartData(customer.getId())
+                        .stream()
+                        .map(java.sql.Date::toLocalDate)
+                        .collect(Collectors.toList());
+
+                UserStatistics userStatistics = customer.getUserStatistics();
+                userStatistics.updateStreak(loginDates);
+                userStatisticsRepository.save(userStatistics);
+            }
             return ResponseEntity.ok(new AuthenticationResponse(authenticationService.loginUser(request.getEmail(), request.getPassword())));
         } catch(AuthenticationException e)
         {
