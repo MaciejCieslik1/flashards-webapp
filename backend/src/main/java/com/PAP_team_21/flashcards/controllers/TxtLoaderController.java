@@ -14,8 +14,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -31,7 +33,8 @@ public class TxtLoaderController {
 
     @PostMapping("/loadDeckTxt")
     public ResponseEntity<?> loadDeckTxt(Authentication authentication,
-                                            @RequestBody LoadDataFromTxtRequest loadDataFromTxtRequest) {
+                                         @RequestParam("fileToLoad") MultipartFile file,
+                                         @RequestParam("folderId") int folderId) {
         String email = authentication.getName();
         Optional<Customer> customerOpt = customerRepository.findByEmail(email);
 
@@ -40,8 +43,18 @@ public class TxtLoaderController {
         }
         Customer customer = customerOpt.get();
 
-        String filePath = "/app/files_to_load/" + loadDataFromTxtRequest.getFilePath();
-        int folderId = loadDataFromTxtRequest.getFolderId();
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body("File cannot be empty");
+        }
+
+        String fileName = file.getOriginalFilename();
+        if (fileName == null || !fileName.toLowerCase().endsWith(".txt")) {
+            return ResponseEntity.badRequest().body("Only .txt files are supported");
+        }
+
+        if (folderId < 0) {
+            return ResponseEntity.badRequest().body("Invalid folder id");
+        }
 
         Optional<Folder> folderOpt = folderJpaRepository.findById(folderId);
         if (folderOpt.isEmpty()) {
@@ -57,8 +70,8 @@ public class TxtLoaderController {
         }
 
         try {
-            byte[] txtData = Files.readAllBytes(Paths.get(filePath));
-            Deck deck = txtLoader.loadDeckFromTxt(txtData, folder);
+            byte[] txtData = file.getBytes();
+            Deck deck = txtLoader.loadDeckFromTxt(txtData, folder, customer);
             deckService.save(deck);
             return ResponseEntity.ok(deck);
         }
