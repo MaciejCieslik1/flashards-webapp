@@ -224,7 +224,15 @@ public class CustomerController {
         Customer customer = customerOpt.get();
 
         List<Friendship> receivedFriendships = customer.getReceivedFriendships();
-        return ResponseEntity.ok(receivedFriendships);
+
+        List<Friendship> waitingReceivedFriendships = new ArrayList<>();
+        for (Friendship friendship : receivedFriendships) {
+            if (!friendship.isAccepted()) {
+                waitingReceivedFriendships.add(friendship);
+            }
+        }
+
+        return ResponseEntity.ok(waitingReceivedFriendships);
     }
 
     @GetMapping("/getSentFriendships")
