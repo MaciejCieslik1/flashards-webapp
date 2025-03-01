@@ -323,14 +323,12 @@ CREATE PROCEDURE get_github_style_chart_data(
 )
 BEGIN
 SELECT
-    DATE(`when`) AS activity_date
+    DATE(`login_date`) AS activity_date
 FROM
-    Review_Logs
+    Logins
 WHERE
-    user_id = userId
-  AND `when` > DATE_SUB(NOW(), INTERVAL 1 YEAR)
-GROUP BY
-    DATE(`when`);
+    customer_id = userId
+  AND `login_date` > DATE_SUB(NOW(), INTERVAL 1 YEAR);
 END //
 
 # =============================================================================
@@ -407,9 +405,11 @@ CREATE PROCEDURE count_all_cards(
     OUT result INT
 )
 BEGIN
-SELECT COUNT(*)
-INTO result
-FROM Flashcards fl;
+    SELECT COALESCE(COUNT(DISTINCT fl.id), 0)
+    INTO result
+    FROM Flashcards fl
+             JOIN Review_Logs rl ON fl.id = rl.flashcard_id
+    WHERE rl.user_id = userId;
 END //
 
 # =============================================================================
