@@ -198,17 +198,13 @@ public class CustomerController {
 
         Customer customer = customerOpt.get();
 
-        String avatarPath = customer.getProfilePicturePath();
-
-        try {
-            Path avatarFilePath = Paths.get(avatarPath);
-            byte[] avatarBytes = Files.readAllBytes(avatarFilePath);
-            CustomerWithAvatar customerWithAvatar = new CustomerWithAvatar(customer, avatarBytes);
-
+        byte[] avatar = customer.getAvatar();
+        if (!(avatar == null)) {
+            CustomerWithAvatar customerWithAvatar = new CustomerWithAvatar(customer, avatar);
             return ResponseEntity.ok(customerWithAvatar);
         }
-        catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error fetching avatar: " + e.getMessage());
+        else {
+            return ResponseEntity.badRequest().body("Error fetching avatar: ");
         }
     }
 

@@ -1,5 +1,6 @@
 package com.PAP_team_21.flashcards.controllers;
 
+import com.PAP_team_21.flashcards.entities.CustomerWithAvatar;
 import com.PAP_team_21.flashcards.entities.JsonViewConfig;
 import com.PAP_team_21.flashcards.entities.customer.Customer;
 import com.PAP_team_21.flashcards.entities.customer.CustomerRepository;
@@ -38,11 +39,30 @@ public class FriendshipController {
         }
         Friendship friendship = friendshipOpt.get();
 
-        if (friendship.getReceiverId() == customer.getId() || friendship.getSenderId() == customer.getId()) {
-            return ResponseEntity.ok(friendship);
+        if (friendship.getReceiverId() == customer.getId()) {
+            Optional<Customer> friendOpt = customerRepository.findById(friendship.getSenderId());
+            return getFriendWithAvatarResponseEntity(friendOpt);
         }
 
-        return ResponseEntity.badRequest().body("User do not have access to this friendship");
+        else {
+            Optional<Customer> friendOpt = customerRepository.findById(friendship.getReceiverId());
+            return getFriendWithAvatarResponseEntity(friendOpt);
+        }
+    }
+
+    public ResponseEntity<?> getFriendWithAvatarResponseEntity(Optional<Customer> friendOpt) {
+        if (friendOpt.isPresent()) {
+            Customer friend = friendOpt.get();
+            byte[] avatar = friend.getAvatar();
+            if (avatar == null) {
+                return ResponseEntity.badRequest().body("Error fetching avatar");
+            }
+            CustomerWithAvatar friendWithAvatar = new CustomerWithAvatar(friend, avatar);
+            return ResponseEntity.ok(friendWithAvatar);
+        }
+        else {
+            return ResponseEntity.badRequest().body("No customer with this id found");
+        }
     }
 
     @DeleteMapping("/delete")

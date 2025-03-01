@@ -18,7 +18,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.DynamicInsert;
+import org.springframework.http.ResponseEntity;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -166,5 +171,17 @@ public class Customer {
             folderAccessLevels = new ArrayList<>();
         }
         this.folderAccessLevels.add(this.rootFolder.getAccessLevels().get(0));
+    }
+
+    public byte[] getAvatar() {
+        String avatarPath = getProfilePicturePath();
+
+        try {
+            Path avatarFilePath = Paths.get(avatarPath);
+            return Files.readAllBytes(avatarFilePath);
+        }
+        catch (IOException e) {
+            return new byte[0];
+        }
     }
 }
