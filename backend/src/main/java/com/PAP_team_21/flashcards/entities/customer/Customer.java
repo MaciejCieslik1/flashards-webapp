@@ -6,6 +6,7 @@ import com.PAP_team_21.flashcards.entities.flashcardProgress.FlashcardProgress;
 import com.PAP_team_21.flashcards.entities.folder.Folder;
 import com.PAP_team_21.flashcards.entities.folderAccessLevel.FolderAccessLevel;
 import com.PAP_team_21.flashcards.entities.friendship.Friendship;
+import com.PAP_team_21.flashcards.entities.login.Login;
 import com.PAP_team_21.flashcards.entities.notification.Notification;
 import com.PAP_team_21.flashcards.entities.reviewLog.ReviewLog;
 import com.PAP_team_21.flashcards.entities.sentVerificationCodes.SentVerificationCode;
@@ -17,7 +18,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.DynamicInsert;
+import org.springframework.http.ResponseEntity;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -98,6 +104,9 @@ public class Customer {
     @OneToMany(mappedBy = "customer", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<ReviewLog> reviewLogs;
 
+    @OneToMany(mappedBy = "customer", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<Login> logins;
+
     @ManyToMany(mappedBy = "customers", fetch = FetchType.LAZY,
             cascade = {CascadeType.PERSIST, CascadeType.MERGE,
                         CascadeType.DETACH, CascadeType.REFRESH})
@@ -162,5 +171,17 @@ public class Customer {
             folderAccessLevels = new ArrayList<>();
         }
         this.folderAccessLevels.add(this.rootFolder.getAccessLevels().get(0));
+    }
+
+    public byte[] getAvatar() {
+        String avatarPath = getProfilePicturePath();
+
+        try {
+            Path avatarFilePath = Paths.get(avatarPath);
+            return Files.readAllBytes(avatarFilePath);
+        }
+        catch (IOException e) {
+            return new byte[0];
+        }
     }
 }

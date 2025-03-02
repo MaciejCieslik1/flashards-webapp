@@ -68,8 +68,8 @@ CREATE TABLE `Review_Logs`(
                               `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
                               `flashcard_id` INT UNSIGNED NOT NULL,
                               `user_id` INT UNSIGNED NOT NULL,
-                              `when` DATETIME NOT NULL,
-                              `user_answer` TINYINT NOT NULL
+                              `when` DATETIME,
+                              `user_answer` TINYINT
 );
 CREATE TABLE `Folders_Decks`(
                                 `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -118,6 +118,12 @@ CREATE TABLE `Sent_Verification_Codes`(
                                         `code` VARCHAR(255) NOT NULL
 );
 
+CREATE TABLE `Logins`(
+                                        `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                                        `customer_id` INT UNSIGNED NOT NULL,
+                                        `login_date` DATE NOT NULL
+);
+
 ALTER TABLE
     `Sent_Verification_Codes` ADD CONSTRAINT `sent_verification_tokens_user_id_foreign` FOREIGN KEY(`customer_id`) REFERENCES `Customers`(`id`);
 
@@ -163,7 +169,8 @@ ALTER TABLE
     `Flashcards_Progresses` ADD CONSTRAINT `flashcards_progresses_user_id_foreign` FOREIGN KEY(`user_id`) REFERENCES `Customers`(`id`);
 ALTER TABLE
     `Flashcards_Progresses` ADD CONSTRAINT `flashcards_progresses_last_review_id_foreign` FOREIGN KEY(`last_review_id`) REFERENCES `Review_Logs`(`id`);
-
+ALTER TABLE
+    `Logins` ADD CONSTRAINT `login_dates_user_id_foreign` FOREIGN KEY(`customer_id`) REFERENCES `Customers`(`id`);
 
 -- things from old chart
 CREATE TABLE `Authorities`(

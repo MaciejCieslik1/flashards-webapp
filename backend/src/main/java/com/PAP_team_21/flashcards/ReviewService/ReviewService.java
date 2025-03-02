@@ -9,11 +9,13 @@ import com.PAP_team_21.flashcards.entities.flashcardProgress.FlashcardProgress;
 import com.PAP_team_21.flashcards.entities.flashcardProgress.FlashcardProgressRepository;
 import com.PAP_team_21.flashcards.entities.folder.Folder;
 import com.PAP_team_21.flashcards.entities.reviewLog.ReviewLog;
+import com.PAP_team_21.flashcards.entities.reviewLog.ReviewLogRepository;
 import com.PAP_team_21.flashcards.entities.userStatistics.UserStatisticsRepository;
 import com.nimbusds.jwt.util.DateUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
 
@@ -28,6 +30,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.Period;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -37,6 +40,7 @@ public class ReviewService {
     private final FlashcardProgressRepository flashcardProgressRepository;
 
     private final UserStatisticsRepository userStatisticsRepository;
+    private final ReviewLogRepository reviewLogRepository;
 
     @Value("${scheduling.max_flashcard_learning}")
     private int maxCurrentlyLearning;
@@ -207,18 +211,19 @@ public class ReviewService {
     private  LocalDateTime getNextReview(LocalDateTime lastReview, LocalDateTime previousNextReview, UserAnswer answer)
     {
         // scheduled gap between previous review and next review - related to knowledge of flashcard
-        Duration knowledgeGap = Duration.between(lastReview, previousNextReview);
+        Duration knowledgeGap = Duration.between(previousNextReview, lastReview);
         // how much after scheduled date was flashcard reviewed
-        Duration scheduledGap = Duration.between(LocalDateTime.now(), lastReview);
 
         if(answer.equals(UserAnswer.FORGOT))
         {
-            return LocalDateTime.now().plus(Duration.ofMinutes(1));
+            return LocalDateTime.now().plus(Duration.ofSeconds(1));
         }
 
         Duration tillNextReview = muliplyDurationWithSecondPercision(knowledgeGap, getMultiplier(answer));
-        if(tillNextReview.get(ChronoUnit.YEARS) >= 1)
-            tillNextReview = Duration.of(1L, ChronoUnit.YEARS);
+        if(tillNextReview.toDays() >= 365) {
+            tillNextReview = Duration.ofDays(365);
+        }
+
         return LocalDateTime.now().plus(tillNextReview);
     }
 
@@ -228,16 +233,10 @@ public class ReviewService {
                 customer,
                 LocalDateTime.now(),
                 userAnswer);
-
+        if (flashcard != null && customer != null && userAnswer != null) {
+            reviewLogRepository.save(rl);
+        }
         Optional<FlashcardProgress> progress = flashcardProgressRepository.findByCustomerAndFlashcard(customer, flashcard);
-
-
-        Optional<LocalDateTime> lastReviewOpt = userStatisticsRepository.findCustomersLastReview(customer.getId());
-        if (lastReviewOpt.isPresent())
-            customer.getUserStatistics().updateStatistics(lastReviewOpt.get());
-        else
-            customer.getUserStatistics().updateStatistics();
-        userStatisticsRepository.save(customer.getUserStatistics());
 
         if(progress.isEmpty())
         {
@@ -246,7 +245,7 @@ public class ReviewService {
                     customer,
                     LocalDateTime.now().plus(Duration.ofMinutes(2)),
                     rl
-                    );
+            );
             flashcardProgressRepository.save(fp);
         }
         else
@@ -255,6 +254,8 @@ public class ReviewService {
             progress.get().setNext_review(getNextReview(progress.get().getLastReviewLog().getWhen(), progress.get().getNext_review(), userAnswer));
             flashcardProgressRepository.save(progress.get());
         }
+
+
 
 
 

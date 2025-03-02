@@ -13,7 +13,7 @@ const UserStatisticsService = {
         //     allNewCards: 57,
         //     allLearningCards: 120,
         //     allRememberedCards: 217,
-        //     loginDates: [
+        //     login: [
         //         '10-12-2024', '11-12-2024', '14-12-2024'
         //     ]
         // }
