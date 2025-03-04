@@ -1,90 +1,126 @@
-# Temat projektu: Aplikacja webowa do nauki z wykorzystaniem fiszek
+# Flashcard Web Application
 
-### Zespół
-- Julia Czosnek
+## Project Overview
+
+The Flashcard Web Application is designed to facilitate learning through digital flashcards. The application enables users to create, manage, and review flashcards using a spaced repetition algorithm to enhance knowledge retention. The project aims to provide an intuitive and effective tool for learners, allowing them to organize their study materials efficiently while leveraging modern web technologies.
+
+## Team
+
+This project was developed by a team of four developers, working collaboratively to integrate various technologies and implement a robust learning system. The team included:
 - Kacper Górski
+- Julia Czosnek
 - Marcin Polewski
 - Maciej Cieślik
 
-### Technologie
-- **Spring** – backend, obsługa baz danych
-- **React** – frontend
-- **Node.js** – obsługa niektórych procesów, API
-- **Docker** – konteneryzacja aplikacji
-- **Git** – kontrola wersji i współpraca zespołowa
-- **MySQL** - bazy danych
+## Technologies Used
 
-### Funkcjonalności Aplikacji
+- **Spring** – Backend development and database management
+- **React** – Frontend development
+- **Node.js** – API handling and background processes
+- **Docker** – Application containerization
+- **Git** – Version control and team collaboration
+- **MySQL** – Database management system
 
-1. **Logowanie i Rejestracja**
-   - Logowanie za pomocą konta i hasła
-   - Rejestracja przez email
-   - Odzyskiwanie hasła
-   - Logowanie za pomocą OAuth
+## Application Features
 
-2. **Tworzenie Fiszek**
-   - Tworzenie folderów na fiszki
-   - Modyfikacja i usuwanie fiszek
-   - Obsługa trybów powtarzania materiału: Klasyczne fiszki
-   - Import i eksport fiszek
+### 1. User Authentication
 
-3. **Algorytm Powtarzania – Spaced Repetition**
-   - Algorytm zaplanowany jako serwis, który planuje pojawianie się fiszek zgodnie z metodą „spaced repetition”
+- Secure login with email and password
+- User registration via email
+- Password recovery through email verification
+- OAuth-based login via third-party authentication providers*
 
-4. **Statystyki**
-   - Śledzenie postępów użytkownika
-   - Statystyki użytkownika, takie jak:
-     - Ilość przejrzanych fiszek w ciągu dnia
-     - Ilość fiszek do przejrzenia
+### 2. Flashcard Management
 
-5. **Zarządzanie Fiszkami**
-   - Zamiana przodu fiszki z tyłem
-   - Przechowywanie danych w bazie danych
+- Create, modify, and delete flashcards
+- Organize flashcards into customizable folders
+- Support for classic flashcard study modes
+- Import and export functionality for flashcards in multiple formats (txt, pdf)
 
-## Część bazodanowa
+### 3. Spaced Repetition Algorithm
 
-Schematy ER i model relacyjny są umieszone odpowiednio w plikach <em>er_model.png</em> i <em>relational_model.png</em>.
+- A dedicated service schedules flashcard reviews using the spaced repetition technique to optimize learning efficiency
+- The algorithm dynamically adjusts review intervals based on user performance and retention rates
 
-Wszystkie skrypty sql znajdują się w katalogu <em>database</em>. Pliki 00 i 01 są odpalane automatycznie przy starcie bazy, co zostało określone w Dockerfile.
+### 4. User Progress Tracking
 
-W projekcie zastosowano dialekt SQL oparty na MySQL. MySQL nie wspiera polecenia SEQUENCE, które jest dostępne w niektórych innych systemach zarządzania bazami danych (np. PostgreSQL). Aby uzyskać automatyczne, rosnące o 1 identyfikatory (id) w tabelach, wykorzystano funkcję AUTO_INCREMENT podczas definiowania kolumn kluczy głównych. Jednakże, na potrzeby projektu zaimplementowano mechanizm sekwencji (SEQUENCES), tyle że są one obecnie zakomentowane w pliku 03 w katalogu database.
+- Track learning progress over time
+- View detailed statistics, including:
+   - Number of reviewed flashcards per day
+   - Number of pending flashcards for review
+   - User accuracy and retention rate
 
-Warto również pamiętać, że przed uruchomieniem pliku 03, konieczne jest wcześniejsze wykonanie pliku 02 (zawierającego inserty), który automatycznie wprowadza przykładowe rekordy do bazy danych. Zapewnia to poprawne działanie testów i pozwala na weryfikację funkcjonalności aplikacji w środowisku bazodanowym.
+### 5. Flashcard Customization
 
-### Komendy do uruchamiania aplikacji
-- **docker compose down -v --rmi all** - wyłącza kontenery, usuwa pamięć i obrazy.
-- **docker compose up** - uruchamia aplikacje.
+- Flip flashcards (swap front and back content)
+- Store and manage flashcard data securely in the database
+- Advanced search and filtering options for efficient flashcard retrieval
+- Tagging system to categorize flashcards for better organization
 
-### Uruchamiania skryptów w bazie danych
-1. Uruchomienie dockera.
-2. Łączenie się z bazą dzięki dodaniu portu 3306 do docker-compose.
-3. Logowanie poprzez hasło springstudent.
-4. Odpalenie skryptu w IDE (np. IntelliJ).
+## Database Design
 
-### Analiza krytyczna bazy danych
+Entity-Relationship (ER) and relational models are available in the files:
+- er_model.png (ER diagram)
+- relational_model.png (Relational model)
 
-Przedstawione rozwiązanie bazy danych wykazuje solidne podstawy projektowe i spełnia wiele kluczowych wymagań dla systemu zarządzania aplikacją Flashcards. W szczególności:
+All SQL scripts are located in the database directory. Scripts 00.sql and 01.sql execute automatically at database startup, as specified in the Dockerfile.
 
-- **Dobrze zorganizowana struktura danych**: Projekt opiera się na dobrze przemyślanym modelu relacyjnym, który uwzględnia wiele funkcjonalności aplikacji, takich jak zarządzanie użytkownikami, ich statystykami, powiadomieniami czy strukturą folderów. Tabele są logicznie podzielone, co zapewnia przejrzystość i skalowalność.
+The project uses a MySQL-based SQL dialect. MySQL does not support the SEQUENCE command available in other database management systems (e.g., PostgreSQL). To generate auto-incrementing primary keys, the AUTO_INCREMENT attribute is used. Additionally, a custom sequence mechanism was implemented but remains commented out in the 03.sql script.
 
-- **Kluczowe relacje i integralność danych**: Zdefiniowano liczne klucze obce, co pomaga utrzymać integralność referencyjną między tabelami. Dzięki temu rozwiązanie minimalizuje ryzyko niespójności w danych, np. usunięcia użytkownika bez usunięcia jego powiązanych rekordów.
+### Database Initialization and Execution
 
-- **Obsługa użytkowników i uprawnień**: Implementacja użytkownika <em>springstudent</em> oraz odpowiednie przydzielenie uprawnień to praktyczny krok w stronę kontroli dostępu i testowania bazy w środowisku symulującym rzeczywiste wykorzystanie.
+Before executing 03.sql, 02.sql (containing sample data inserts) must be run. This ensures test data is available for validation and application functionality testing.
 
-- **Elastyczność i rozszerzalność**: Wiele tabel (np. User_Preferences, Flashcards_Progresses) uwzględnia możliwość personalizacji lub przechowywania danych użytkownika w sposób łatwo rozszerzalny. Takie podejście sprzyja rozwojowi aplikacji i wprowadzaniu nowych funkcji w przyszłości.
+The database schema was designed to support scalability and maintain data integrity through:
 
-- **Dobre praktyki projektowe**: Przyjęto konwencję nadawania tabelom nazw w liczbie mnogiej oraz stosowania intuicyjnych nazw kolumn, co ułatwia orientację w strukturze bazy. Dodatkowo uwzględniono domyślne wartości dla kluczowych pól (enabled, account_locked), co zmniejsza ryzyko błędów w aplikacji.
+- Foreign key constraints to enforce referential integrity
+- Indexing strategies to optimize query performance
+- Normalization techniques to prevent data redundancy
+- Efficient relationship mapping to ensure proper entity associations
 
-- **Przemyślana logika biznesowa**: Zdefiniowanie tabel takich jak Friendships, Notifications, czy Review_Logs wskazuje na kompleksowe podejście do modelowania funkcjonalności, takich jak zarządzanie relacjami między użytkownikami, notyfikacjami i postępami w nauce.
+## Running the Application
 
-Obszary do ewentualnej poprawy:
+To deploy and manage the application using Docker:
+- Stop and clean the environment:
+```
+docker compose down -v --rmi all
+```
+- Start the application:
+```
+docker compose up
+```
+## Connecting to the Database
 
-- **Optymalizacja indeksów**: Chociaż zdefiniowano unikalny indeks dla adresów e-mail (customers_email_unique), brak dodatkowych indeksów może spowolnić zapytania w tabelach o dużej liczbie rekordów, takich jak Review_Logs czy Flashcards.
+1. Start the Docker container.
+2. Ensure port 3306 is exposed in docker-compose.yml.
+3. Connect using the springstudent credentials.
+4. Execute SQL scripts in an IDE (e.g., IntelliJ, DBeaver, or MySQL Workbench).
 
-- **Implementacja większej liczby wyzwalaczy**, aby zminimalizować ryzyko problemów z integralnością bazy danych.
+## Database Analysis
 
-- **Niepełne zarządzanie danymi wrażliwymi**: password_hash w tabeli Customers jest przechowywane jako VARCHAR. Nie ma wskazówek dotyczących szyfrowania lub hashowania.
+The database design provides a solid foundation for managing flashcards efficiently.
 
-- **Lepsza dokumentacja**: Niektóre tabele (np. Folder_Parent, Folders_Decks) mogłyby skorzystać z bardziej rozbudowanej dokumentacji w kodzie, aby lepiej wyjaśnić ich znaczenie i logikę użycia.
+### Strengths
 
-Rozwiązanie jest dobrze przemyślane i odpowiednio dostosowane do specyfikacji aplikacji. Wprowadzenie drobnych usprawnień, takich jak optymalizacja indeksów czy dopracowanie triggerów, mogłoby jeszcze bardziej zwiększyć jej wydajność i elastyczność.
+- **Structured and scalable design**: The relational model supports user management, statistics, notifications, and folder organization.
+- **Data integrity and relationships**: Foreign key constraints ensure referential integrity, preventing issues like orphaned records.
+- **User access management**: The implementation of a springstudent user account allows controlled access and testing.
+- **Extensibility**: Tables such as User_Preferences and Flashcards_Progresses facilitate easy feature expansion.
+- **Best practices**: Tables follow a consistent naming convention, with appropriate default values to prevent inconsistencies.
+- **Comprehensive functionality**: Tables like Friendships, Notifications, and Review_Logs enhance user experience by supporting social interactions and tracking learning progress.
+
+### Areas for Improvement
+
+- **Index Optimization**: While unique constraints (e.g., customers_email_unique) exist, additional indexing could enhance query performance for large tables such as Review_Logs and Flashcards.
+- **Trigger Implementation**: More database triggers could be utilized to ensure data integrity and automate certain operations.
+- **Sensitive Data Management**: The password_hash field in the Customers table is stored as VARCHAR, with no explicit hashing or encryption strategy mentioned. Implementing a secure hashing algorithm (e.g., bcrypt, Argon2) would enhance security.
+- **Documentation Enhancements**: Certain tables, such as Folder_Parent and Folders_Decks, could benefit from additional documentation to clarify their purpose and relationships.
+
+### Additional Considerations
+
+- **Performance Tuning**: Query optimization techniques such as indexing, caching, and batch processing could improve system efficiency.
+- **Security Measures**: Implementing role-based access control (RBAC) and encryption for sensitive data fields would strengthen security.
+- **Backup and Recovery**: Defining a structured backup strategy for the database to ensure data safety in case of failures.
+
+Overall, the database structure effectively supports the application's functionality. Implementing these improvements could further enhance its performance, security, and maintainability, making it a more robust and scalable solution for long-term usage.
+
