@@ -158,7 +158,7 @@ public class FolderController {
         if(response.getFolder().equals(response.getCustomer().getRootFolder()))
             return ResponseEntity.badRequest().body("You cannot delete the root folder");
 
-        if(response.getAccessLevel() != null && (response.getAccessLevel().equals(AccessLevel.OWNER) || response.getAccessLevel().equals(AccessLevel.EDITOR)))
+        if(response.getAccessLevel() != null && response.getAccessLevel().equals(AccessLevel.OWNER))
         {
             folderService.delete(folderId);
             return ResponseEntity.ok("folder deleted");
