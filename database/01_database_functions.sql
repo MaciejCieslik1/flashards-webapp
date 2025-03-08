@@ -285,7 +285,7 @@ BEGIN
             FROM Flashcards fl
                JOIN Flashcards_Progresses fp ON fl.id = fp.flashcard_id
                JOIN Review_Logs rl ON fl.id = rl.flashcard_id
-            WHERE fl.deck_id = deckId AND fp.user_id = userId AND fp.next_review <= NOW()
+            WHERE fl.deck_id = deckId AND fp.user_id = userId AND rl.user_id = userId AND fp.next_review <= NOW()
             GROUP BY fl.id
             HAVING COUNT(rl.id) > 1
         ) AS subquery;
@@ -391,7 +391,7 @@ FROM (
         FROM Flashcards fl
             JOIN Flashcards_Progresses fp ON fl.id = fp.flashcard_id
             JOIN Review_Logs rl ON fl.id = rl.flashcard_id
-        WHERE fp.user_id = userId AND fp.next_review <= NOW()
+        WHERE fp.user_id = userId AND rl.user_id = userId AND fp.next_review <= NOW()
         GROUP BY fl.id
         HAVING COUNT(rl.id) > 1
      ) AS subquery;
