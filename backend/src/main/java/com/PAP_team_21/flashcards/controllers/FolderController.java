@@ -195,19 +195,9 @@ public class FolderController {
         AccessLevel al = response.getAccessLevel();
 
         if(al.equals(AccessLevel.EDITOR) || al.equals(AccessLevel.OWNER) || al.equals(AccessLevel.VIEWER)) {
-            Folder folder = response.getFolder();
-            List<FolderAccessLevel> folderAccessLevels = folder.getAccessLevels();
-            Set<Folder> currentParents = folder.getParents();
             Optional<Customer> friendOpt = customerRepository.findByEmail(request.getAddresseeEmail());
             if (friendOpt.isPresent()) {
-                FolderAccessLevel folderAccessLevel = new FolderAccessLevel(friendOpt.get(), request.getAccessLevel(),
-                        folder);
-                currentParents.add(friendOpt.get().getRootFolder());
-                folder.setParents(currentParents);
-                folderAccessLevels.add(folderAccessLevel);
-                folder.setAccessLevels(folderAccessLevels);
-                folderService.save(folder);
-                folderAccessLevelRepository.save(folderAccessLevel);
+                folderService.prepareFolderToShare(response.getFolder(), friendOpt.get(), response.getAccessLevel());
                 return ResponseEntity.ok("Folder shared successfully");
             }
             return ResponseEntity.badRequest().body("Friend not found");
