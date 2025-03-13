@@ -58,6 +58,14 @@ public class ReviewLog {
         this.userAnswer = userAnswer;
     }
 
+    public ReviewLog(Flashcard flashcard, Customer customer, UserAnswer userAnswer) {
+        this.flashcard = flashcard;
+        this.customer = customer;
+        this.when = LocalDateTime.now();
+        this.userAnswer = userAnswer;
+    }
+
+
     public ReviewLog(int flashcardId, int userId, UserAnswer userAnswer) {
         this.flashcardId = flashcardId;
         this.userId = userId;

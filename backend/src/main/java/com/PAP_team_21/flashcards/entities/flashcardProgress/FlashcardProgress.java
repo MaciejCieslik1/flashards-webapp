@@ -54,4 +54,12 @@ public class FlashcardProgress {
         this.next_review = next_review;
         this.lastReviewLog = lastReviewLog;
     }
+
+
+    public FlashcardProgress(Flashcard flashcard, Customer customer, ReviewLog lastReviewLog) {
+        this.flashcard = flashcard;
+        this.customer = customer;
+        this.next_review = LocalDateTime.now();
+        this.lastReviewLog = lastReviewLog;
+    }
 }

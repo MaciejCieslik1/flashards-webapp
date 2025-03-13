@@ -13,9 +13,11 @@ import com.PAP_team_21.flashcards.entities.customer.Customer;
 import com.PAP_team_21.flashcards.entities.customer.CustomerRepository;
 import com.PAP_team_21.flashcards.entities.deck.Deck;
 import com.PAP_team_21.flashcards.entities.deck.DeckService;
+import com.PAP_team_21.flashcards.entities.flashcard.Flashcard;
 import com.PAP_team_21.flashcards.entities.folder.Folder;
 import com.PAP_team_21.flashcards.entities.folder.FolderJpaRepository;
 import com.PAP_team_21.flashcards.entities.folder.FolderService;
+import com.PAP_team_21.flashcards.entities.reviewLog.ReviewLog;
 import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -97,13 +99,12 @@ public class DeckController {
         }
 
         List<Deck> result = new ArrayList<>();
-        List< Folder > folders = folderService.findAllUserFolders(customerOpt.get().getId());
+        List<Folder> folders = folderService.findAllUserFolders(customerOpt.get().getId());
 
         for(Folder f: folders)
         {
             result.addAll(f.getDecks());
         }
-
         return ResponseEntity.ok(result);
     }
 
@@ -118,7 +119,7 @@ public class DeckController {
         }
 
         List<Deck> result = new ArrayList<>();
-        List< Folder > folders = folderService.findAllUserFolders(customerOpt.get().getId());
+        List<Folder> folders = folderService.findAllUserFolders(customerOpt.get().getId());
 
         for(Folder f: folders)
         {
@@ -221,6 +222,13 @@ public class DeckController {
     @JsonView(JsonViewConfig.Public.class)
     public ResponseEntity<?> getDeckInfoById(Authentication authentication, @RequestParam int deckId)
     {
+        String email = authentication.getName();
+        Optional<Customer> customerOpt = customerRepository.findByEmail(email);
+        if(customerOpt.isEmpty())
+        {
+            return ResponseEntity.badRequest().body("Customer not found");
+        }
+
         DeckAccessServiceResponse response;
         try{
             response = resourceAccessService.getDeckAccessLevel(authentication,deckId);
@@ -232,7 +240,7 @@ public class DeckController {
         if(al != null)
         {
             // deckService.delete(response.getDeck());
-            return ResponseEntity.ok(deckMapper.toDTO(response.getCustomer(), response.getDeck()));
+            return ResponseEntity.ok(deckMapper.toDTO(customerOpt.get(), response.getDeck()));
         }
         return ResponseEntity.badRequest().body("You do not have permission to get this deck");
     }

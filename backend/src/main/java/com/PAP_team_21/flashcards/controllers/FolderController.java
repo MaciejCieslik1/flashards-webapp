@@ -20,8 +20,11 @@ import com.PAP_team_21.flashcards.entities.folder.Folder;
 import com.PAP_team_21.flashcards.entities.folder.FolderDao;
 import com.PAP_team_21.flashcards.entities.folder.FolderJpaRepository;
 import com.PAP_team_21.flashcards.entities.folder.FolderService;
+import com.PAP_team_21.flashcards.entities.folderAccessLevel.FolderAccessLevel;
+import com.PAP_team_21.flashcards.entities.folderAccessLevel.FolderAccessLevelRepository;
 import com.fasterxml.jackson.annotation.JsonView;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.actuate.autoconfigure.metrics.MetricsProperties;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -48,6 +51,7 @@ public class FolderController {
     private final FolderMapper folderMapper;
     private final AuthenticationEmailSender emailSender;
     private final VerificationTokenGenerator tokenGenerator;
+    private final FolderAccessLevelRepository folderAccessLevelRepository;
 
     @GetMapping("/getFolderStructure")
     @JsonView(JsonViewConfig.Public.class)
@@ -154,7 +158,7 @@ public class FolderController {
         if(response.getFolder().equals(response.getCustomer().getRootFolder()))
             return ResponseEntity.badRequest().body("You cannot delete the root folder");
 
-        if(response.getAccessLevel() != null && (response.getAccessLevel().equals(AccessLevel.OWNER) || response.getAccessLevel().equals(AccessLevel.EDITOR)))
+        if(response.getAccessLevel() != null && response.getAccessLevel().equals(AccessLevel.OWNER))
         {
             folderService.delete(folderId);
             return ResponseEntity.ok("folder deleted");
@@ -179,7 +183,7 @@ public class FolderController {
     }
 
     @PostMapping("/shareFolder")
-    public ResponseEntity<?> shareFolder(Authentication authentication, ShareFolderRequest request)
+    public ResponseEntity<?> shareFolder(Authentication authentication, @RequestBody ShareFolderRequest request)
     {
         FolderAccessServiceResponse response;
         try {
@@ -189,51 +193,16 @@ public class FolderController {
         }
 
         AccessLevel al = response.getAccessLevel();
-        Folder folder = response.getFolder();
 
-        if(al != null && (al.equals(AccessLevel.EDITOR) || al.equals(AccessLevel.OWNER)))
-        {
-            // wyślij email
-            ShareFolderDTO dto = new ShareFolderDTO(response.getCustomer().getEmail(), request.getAddresseeEmail(), request.getFolderId(), request.getAccessLevel());
-            try{
-                String verificationCode = tokenGenerator.encodeObject(dto);
-                emailSender.sendVerifyFolderShareLink(request.getAddresseeEmail(), verificationCode);
-            } catch (Exception e) {
-                return ResponseEntity.badRequest().body("Error while encoding object" + e.getMessage());
+        if(al.equals(AccessLevel.EDITOR) || al.equals(AccessLevel.OWNER) || al.equals(AccessLevel.VIEWER)) {
+            Optional<Customer> friendOpt = customerRepository.findByEmail(request.getAddresseeEmail());
+            if (friendOpt.isPresent()) {
+                folderService.prepareFolderToShare(response.getFolder(), friendOpt.get(), response.getAccessLevel());
+                return ResponseEntity.ok("Folder shared successfully");
             }
-
-            return ResponseEntity.ok("shared successfully - tell your friend to check email");
+            return ResponseEntity.badRequest().body("Friend not found");
         }
         return ResponseEntity.badRequest().body("You do not have permission to view this folder");
-
-    }
-
-    @PostMapping ("/acceptFolderShare")
-    public ResponseEntity<?> shareFolder(Authentication authentication, String token)
-    {
-        ShareFolderDTO dto;
-        try{
-            dto = (ShareFolderDTO) tokenGenerator.decodeToken(token);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error while decoding token" + e.getMessage());
-        }
-
-        Optional<Customer> addresseeOpt = customerRepository.findByEmail(dto.getAddresseeEmail());
-        if(addresseeOpt.isEmpty())
-        {
-            return ResponseEntity.badRequest().body("No user with this email found");
-        }
-
-        Customer addressee = addresseeOpt.get();
-        Optional<Folder> folder = folderService.findById(dto.getFolderId());
-        if(folder.isEmpty())
-        {
-            return ResponseEntity.badRequest().body("No folder with this id found");
-        }
-
-        folder.get().share(addressee, dto.getAccessLevel());
-        folderService.save(folder.get());
-        return ResponseEntity.ok("Folder shared successfully");
     }
 
 
@@ -299,12 +268,12 @@ public class FolderController {
         FolderAccessServiceResponse response;
         try {
             response = resourceAccessService.getFolderAccessLevel(authentication, folderId);
-        } catch (ResourceNotFoundException e) {
+        }
+        catch (ResourceNotFoundException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
         AccessLevel al = response.getAccessLevel();
         Folder folder = response.getFolder();
-
         if(al != null && (al.equals(AccessLevel.EDITOR) || al.equals(AccessLevel.OWNER)))
         {
             try{
