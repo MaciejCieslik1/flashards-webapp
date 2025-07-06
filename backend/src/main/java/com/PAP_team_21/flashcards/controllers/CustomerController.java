@@ -1,6 +1,5 @@
 package com.PAP_team_21.flashcards.controllers;
 
-import com.PAP_team_21.flashcards.controllers.requests.UpdateAvatarRequest;
 import com.PAP_team_21.flashcards.controllers.requests.UpdateBioRequest;
 import com.PAP_team_21.flashcards.controllers.requests.UpdateUsernameRequest;
 import com.PAP_team_21.flashcards.entities.CustomerWithAvatar;
@@ -9,7 +8,6 @@ import com.PAP_team_21.flashcards.entities.JsonViewConfig;
 import com.PAP_team_21.flashcards.entities.customer.Customer;
 import com.PAP_team_21.flashcards.entities.customer.CustomerRepository;
 import com.PAP_team_21.flashcards.entities.customer.CustomerService;
-import com.PAP_team_21.flashcards.entities.folder.Folder;
 import com.PAP_team_21.flashcards.entities.folder.FolderJpaRepository;
 import com.PAP_team_21.flashcards.entities.friendship.Friendship;
 import com.PAP_team_21.flashcards.entities.friendship.FriendshipRepository;
@@ -31,7 +29,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/customer")
@@ -133,10 +130,6 @@ public class CustomerController {
         String newAvatarPath = "/app/avatars/new_profile_picture.jpg";
 
         File avatarFile = new File(newAvatarPath);
-
-        if (avatarFile.exists()) {
-            avatarFile.delete();
-        }
 
         try {
             avatar.transferTo(avatarFile);
@@ -272,8 +265,7 @@ public class CustomerController {
         }
         Customer customer = customerOpt.get();
 
-        List<CustomerWithAvatar> friendsWithAvatars = new ArrayList<CustomerWithAvatar>();
-        List<Customer> friends = new ArrayList<Customer>();
+        List<Customer> friends = new ArrayList<>();
 
         List<Friendship> possibleFriendships = customer.getSentFriendships();
 
@@ -281,19 +273,6 @@ public class CustomerController {
             if (friendship.isAccepted()) {
                 Customer friend = friendship.getReceiver();
                 friends.add(friend);
-
-//                String avatarPath = friend.getProfilePicturePath();
-//
-//                try {
-//                    Path avatarFilePath = Paths.get("/app/avatars", avatarPath);
-//                    byte[] avatarBytes = Files.readAllBytes(avatarFilePath);
-//
-//                    CustomerWithAvatar friendWithAvatar = new CustomerWithAvatar(friend, avatarBytes);
-//                    friendsWithAvatars.add(friendWithAvatar);
-//                }
-//                catch (Exception e) {
-//                    return ResponseEntity.badRequest().body("Error fetching avatar");
-//                }
             }
         }
 
@@ -302,18 +281,6 @@ public class CustomerController {
             if (friendship.isAccepted()) {
                 Customer friend = friendship.getSender();
                 friends.add(friend);
-//                String avatarPath = friend.getProfilePicturePath();
-//
-//                try {
-//                    Path avatarFilePath = Paths.get("/app/avatars", avatarPath);
-//                    byte[] avatarBytes = Files.readAllBytes(avatarFilePath);
-//
-//                    CustomerWithAvatar friendWithAvatar = new CustomerWithAvatar(friend, avatarBytes);
-//                    friendsWithAvatars.add(friendWithAvatar);
-//                }
-//                catch (Exception e) {
-//                    return ResponseEntity.badRequest().body("Error fetching avatar");
-//                }
             }
         }
 
@@ -364,7 +331,6 @@ public class CustomerController {
 
         try {
             Path avatarFilePath = Paths.get("/app/avatars", avatarPath);
-            File avatar = avatarFilePath.toFile();
 
             byte[] avatarBytes = Files.readAllBytes(avatarFilePath);
             CustomerWithAvatar friendWithAvatar = new CustomerWithAvatar(friend, avatarBytes);
@@ -446,7 +412,7 @@ public class CustomerController {
             return ResponseEntity.badRequest().body("No user with this id found");
         }
 
-        if (customerToAddOpt.get().getId() == customer.getId()) {
+        if (customerToAddOpt.get().getId().equals(customer.getId())) {
             return ResponseEntity.badRequest().body("You cannot send friendship request to yourself");
         }
 
@@ -478,7 +444,7 @@ public class CustomerController {
         }
         Customer customerToAdd = customerToAddOpt.get();
 
-        if (customerToAdd.getId() == customer.getId()) {
+        if (customerToAdd.getId().equals(customer.getId())) {
             return ResponseEntity.badRequest().body("You cannot send friendship request to yourself");
         }
 

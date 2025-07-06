@@ -45,7 +45,6 @@ public class ReviewController {
     @PostMapping("/flashcardReviewed")
     public ResponseEntity<?> flashcardReviewed(Authentication authentication,
                                                @RequestBody FlashcardsReviewedRequest reviewResponse) {
-        // update information about flashcards
         FlashcardAccessServiceResponse response;
         try {
             response = resourceAccessService.getFlashcardAccessLevel(authentication, reviewResponse.getFlashcardId());

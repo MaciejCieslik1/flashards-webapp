@@ -30,8 +30,4 @@ public class Authority {
 
     public Authority() {}
 
-    public Authority(String name) {
-        this.name = name;
-    }
-
 }

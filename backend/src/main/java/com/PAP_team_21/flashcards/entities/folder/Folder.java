@@ -30,11 +30,6 @@ public class Folder {
     @JsonView(JsonViewConfig.Public.class)
     private String name;
 
-//    @OneToMany(mappedBy = "parentFolder", fetch = FetchType.LAZY,
-//            cascade = {CascadeType.PERSIST, CascadeType.MERGE,
-//                        CascadeType.DETACH, CascadeType.REFRESH})
-//    private List<FolderUser> folderUsers;
-
     @OneToOne(mappedBy = "rootFolder", cascade = CascadeType.ALL)
     private Customer customer;
 
@@ -59,11 +54,6 @@ public class Folder {
             CascadeType.DETACH, CascadeType.REFRESH})
     @JsonView(JsonViewConfig.Public.class)
     private Set<Folder> children;
-
-    // @TODO dodanie tego powoduje że wywala na dodaniu folderu a nie dopiero na AccessLevel
-//    @ManyToOne(cascade = CascadeType.ALL)
-//    @JoinColumn(name = "access_specyfin_folder_id")
-//    private FolderAccessLevel accessLevel;
 
     @ManyToMany(cascade =
             {CascadeType.PERSIST, CascadeType.MERGE,
@@ -124,16 +114,5 @@ public class Folder {
                 .sorted(Deck.comparatorBy(sortBy, ascending))
                 .limit(size)
                 .collect(Collectors.toList());
-        //return decks.stream().;
-
-    }
-
-    public void share(Customer customer, AccessLevel accessLevel) {
-        FolderAccessLevel fal = new FolderAccessLevel(customer, accessLevel, this);
-        if (accessLevels == null) {
-            accessLevels = new ArrayList<>();
-        }
-        accessLevels.add(fal);
-
     }
 }

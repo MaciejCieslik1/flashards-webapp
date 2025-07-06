@@ -1,7 +1,4 @@
 package com.PAP_team_21.flashcards.entities;
-import com.fasterxml.jackson.annotation.JsonView;
-
-
 
 public class JsonViewConfig {
     public static class Public {}

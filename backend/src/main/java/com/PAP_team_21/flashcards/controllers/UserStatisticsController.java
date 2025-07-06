@@ -2,12 +2,10 @@ package com.PAP_team_21.flashcards.controllers;
 
 import com.PAP_team_21.flashcards.controllers.DTOMappers.UserStatisticsMapper;
 import com.PAP_team_21.flashcards.controllers.requests.UserStatisticsUpdateRequest;
-import com.PAP_team_21.flashcards.entities.JsonViewConfig;
 import com.PAP_team_21.flashcards.entities.customer.Customer;
 import com.PAP_team_21.flashcards.entities.customer.CustomerRepository;
 import com.PAP_team_21.flashcards.entities.userStatistics.UserStatistics;
 import com.PAP_team_21.flashcards.entities.userStatistics.UserStatisticsRepository;
-import com.fasterxml.jackson.annotation.JsonView;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;

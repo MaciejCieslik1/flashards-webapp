@@ -13,8 +13,4 @@ public class CustomerService {
     public List<Customer> findByUsername(String username) {
         return customerDaoImpl.findUserByUsername(username);
     }
-
-    public boolean checkIfEmailAvailable(String email) {
-        return customerDaoImpl.checkIfEmailAvailable(email);
-    }
 }

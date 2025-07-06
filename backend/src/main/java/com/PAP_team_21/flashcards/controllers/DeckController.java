@@ -13,13 +13,9 @@ import com.PAP_team_21.flashcards.entities.customer.Customer;
 import com.PAP_team_21.flashcards.entities.customer.CustomerRepository;
 import com.PAP_team_21.flashcards.entities.deck.Deck;
 import com.PAP_team_21.flashcards.entities.deck.DeckService;
-import com.PAP_team_21.flashcards.entities.flashcard.Flashcard;
 import com.PAP_team_21.flashcards.entities.folder.Folder;
-import com.PAP_team_21.flashcards.entities.folder.FolderJpaRepository;
 import com.PAP_team_21.flashcards.entities.folder.FolderService;
-import com.PAP_team_21.flashcards.entities.reviewLog.ReviewLog;
 import com.fasterxml.jackson.annotation.JsonView;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -77,14 +73,14 @@ public class DeckController {
         }
 
         String email = authentication.getName();
-        Optional<Customer> cusomterOpt = customerRepository.findByEmail(email);
-        if(cusomterOpt.isEmpty())
+        Optional<Customer> customerOpt = customerRepository.findByEmail(email);
+        if(customerOpt.isEmpty())
         {
             return ResponseEntity.badRequest().body("Customer not found");
         }
 
-        List<Deck> decks = deckService.getLastUsedDecks(cusomterOpt.get().getId(), howMany);
-        return ResponseEntity.ok(deckMapper.toDTO(cusomterOpt.get(), decks));
+        List<Deck> decks = deckService.getLastUsedDecks(customerOpt.get().getId(), howMany);
+        return ResponseEntity.ok(deckMapper.toDTO(customerOpt.get(), decks));
     }
 
     @GetMapping("/getAllDecks")
@@ -239,7 +235,6 @@ public class DeckController {
 
         if(al != null)
         {
-            // deckService.delete(response.getDeck());
             return ResponseEntity.ok(deckMapper.toDTO(customerOpt.get(), response.getDeck()));
         }
         return ResponseEntity.badRequest().body("You do not have permission to get this deck");

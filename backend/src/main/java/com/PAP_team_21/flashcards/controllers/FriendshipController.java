@@ -39,15 +39,15 @@ public class FriendshipController {
         }
         Friendship friendship = friendshipOpt.get();
 
+        Optional<Customer> friendOpt;
         if (friendship.getReceiverId() == customer.getId()) {
-            Optional<Customer> friendOpt = customerRepository.findById(friendship.getSenderId());
-            return getFriendWithAvatarResponseEntity(friendOpt);
+            friendOpt = customerRepository.findById(friendship.getSenderId());
         }
 
         else {
-            Optional<Customer> friendOpt = customerRepository.findById(friendship.getReceiverId());
-            return getFriendWithAvatarResponseEntity(friendOpt);
+            friendOpt = customerRepository.findById(friendship.getReceiverId());
         }
+        return getFriendWithAvatarResponseEntity(friendOpt);
     }
 
     public ResponseEntity<?> getFriendWithAvatarResponseEntity(Optional<Customer> friendOpt) {

@@ -2,6 +2,7 @@ package com.PAP_team_21.flashcards.config.security;
 
 import com.PAP_team_21.flashcards.filters.JtwFilter;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -42,7 +43,7 @@ public class SecurityConfig{
                 .csrf(csrf -> csrf.disable())
                 .cors(corsConfig -> corsConfig.configurationSource(new CorsConfigurationSource() {
                     @Override
-                    public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
+                    public CorsConfiguration getCorsConfiguration(@NonNull  HttpServletRequest request) {
                         CorsConfiguration config = new CorsConfiguration();
                         config.setAllowedOriginPatterns(Collections.singletonList("*"));
                         config.setAllowedMethods(Collections.singletonList("*"));

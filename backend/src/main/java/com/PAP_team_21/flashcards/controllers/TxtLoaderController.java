@@ -1,7 +1,6 @@
 package com.PAP_team_21.flashcards.controllers;
 
 import com.PAP_team_21.flashcards.AccessLevel;
-import com.PAP_team_21.flashcards.controllers.requests.LoadDataFromTxtRequest;
 import com.PAP_team_21.flashcards.entities.TxtLoader;
 import com.PAP_team_21.flashcards.entities.customer.Customer;
 import com.PAP_team_21.flashcards.entities.customer.CustomerRepository;
@@ -13,14 +12,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Optional;
 
 @RestController

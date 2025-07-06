@@ -38,9 +38,4 @@ public class Login {
         this.customerId = customerId;
         this.loginDate = LocalDate.now();
     }
-
-    public Login(int customerId, LocalDate loginDate) {
-        this.customerId = customerId;
-        this.loginDate = loginDate;
-    }
 }

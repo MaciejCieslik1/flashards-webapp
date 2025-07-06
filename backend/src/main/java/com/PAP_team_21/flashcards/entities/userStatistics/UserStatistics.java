@@ -9,11 +9,8 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Entity
 @Table(name="User_Statistics")
@@ -66,23 +63,6 @@ public class UserStatistics {
         this.loginCount = loginCount;
         this.lastLogin = lastLogin;
     }
-
-    public void updateStatistics(LocalDate lastReview) {
-        LocalDate today = LocalDate.now();
-        LocalDate yesterday = today.minusDays(1);
-
-        if (lastReview.equals(yesterday)) {
-            totalDaysLearning++;
-            daysLearningStreak++;
-            if (daysLearningStreak > longestLearningStreak)
-                longestLearningStreak = daysLearningStreak;
-        }
-        else if (!lastReview.equals(today)) {
-            totalDaysLearning++;
-            daysLearningStreak = 0;
-        }
-    }
-
 
     public void updateStatistics()
     {

@@ -2,11 +2,8 @@ package com.PAP_team_21.flashcards.controllers;
 
 import com.PAP_team_21.flashcards.AccessLevel;
 import com.PAP_team_21.flashcards.Errors.ResourceNotFoundException;
-import com.PAP_team_21.flashcards.VerificationTokenGenerator;
-import com.PAP_team_21.flashcards.authentication.AuthenticationEmailSender.AuthenticationEmailSender;
 import com.PAP_team_21.flashcards.authentication.ResourceAccessLevelService.FolderAccessServiceResponse;
 import com.PAP_team_21.flashcards.authentication.ResourceAccessLevelService.ResourceAccessService;
-import com.PAP_team_21.flashcards.controllers.DTO.ShareFolderDTO;
 import com.PAP_team_21.flashcards.controllers.DTOMappers.DeckMapper;
 import com.PAP_team_21.flashcards.controllers.DTOMappers.FolderMapper;
 import com.PAP_team_21.flashcards.controllers.requests.FolderCreationRequest;
@@ -17,16 +14,9 @@ import com.PAP_team_21.flashcards.entities.customer.Customer;
 import com.PAP_team_21.flashcards.entities.customer.CustomerRepository;
 import com.PAP_team_21.flashcards.entities.deck.Deck;
 import com.PAP_team_21.flashcards.entities.folder.Folder;
-import com.PAP_team_21.flashcards.entities.folder.FolderDao;
-import com.PAP_team_21.flashcards.entities.folder.FolderJpaRepository;
 import com.PAP_team_21.flashcards.entities.folder.FolderService;
-import com.PAP_team_21.flashcards.entities.folderAccessLevel.FolderAccessLevel;
-import com.PAP_team_21.flashcards.entities.folderAccessLevel.FolderAccessLevelRepository;
 import com.fasterxml.jackson.annotation.JsonView;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.actuate.autoconfigure.metrics.MetricsProperties;
-import org.springframework.core.io.Resource;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -34,7 +24,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -49,9 +38,6 @@ public class FolderController {
     private final ResourceAccessService resourceAccessService;
     private final DeckMapper deckMapper;
     private final FolderMapper folderMapper;
-    private final AuthenticationEmailSender emailSender;
-    private final VerificationTokenGenerator tokenGenerator;
-    private final FolderAccessLevelRepository folderAccessLevelRepository;
 
     @GetMapping("/getFolderStructure")
     @JsonView(JsonViewConfig.Public.class)
@@ -65,8 +51,7 @@ public class FolderController {
     {
         Sort sort = ascending ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(page, size, sort);
-
-
+        
         String email = authentication.getName();
         Optional<Customer> customer = customerRepository.findByEmail(email);
 
@@ -74,21 +59,14 @@ public class FolderController {
         {
             return ResponseEntity.ok(customer.get().getRootFolder());
         }
-            // return ResponseEntity.ok(folderService.findAllByCustomer(pageable, customer.get()));
         return ResponseEntity.badRequest().body("No user with this id found");
     }
 
     @GetMapping("/getAllFolders")
     public ResponseEntity<?> getAllFolders(
             Authentication authentication
-//            @RequestParam(defaultValue = "0") int page,
-//            @RequestParam(defaultValue = "5") int size,
-//            @RequestParam(defaultValue = "id") String sortBy,
-//            @RequestParam(defaultValue = "true") boolean ascending
     )
     {
-//        Sort sort = ascending ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-//        Pageable pageable = PageRequest.of(page, size, sort);
 
         String email = authentication.getName();
         Optional<Customer> customer = customerRepository.findByEmail(email);

@@ -22,9 +22,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class FlashcardProgressController {
 
-    private CustomerRepository customerRepository;
-    private FlashcardRepository flashcardRepository;
-    private FlashcardProgressRepository flashcardProgressRepository;
+    private final CustomerRepository customerRepository;
+    private final FlashcardProgressRepository flashcardProgressRepository;
 
     @GetMapping("/getFlashcardProgress/{id}")
     @JsonView(JsonViewConfig.Public.class)

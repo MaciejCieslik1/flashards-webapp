@@ -11,13 +11,10 @@ import com.PAP_team_21.flashcards.controllers.requests.FlashcardUpdateRequest;
 import com.PAP_team_21.flashcards.entities.JsonViewConfig;
 import com.PAP_team_21.flashcards.entities.customer.Customer;
 import com.PAP_team_21.flashcards.entities.customer.CustomerRepository;
-import com.PAP_team_21.flashcards.entities.deck.DeckService;
 import com.PAP_team_21.flashcards.entities.flashcard.Flashcard;
-import com.PAP_team_21.flashcards.entities.flashcard.FlashcardRepository;
 import com.PAP_team_21.flashcards.entities.flashcard.FlashcardService;
 import com.PAP_team_21.flashcards.entities.flashcardProgress.FlashcardProgress;
 import com.PAP_team_21.flashcards.entities.flashcardProgress.FlashcardProgressRepository;
-import com.PAP_team_21.flashcards.entities.folder.FolderJpaRepository;
 import com.PAP_team_21.flashcards.entities.reviewLog.ReviewLog;
 import com.PAP_team_21.flashcards.entities.reviewLog.ReviewLogRepository;
 import com.fasterxml.jackson.annotation.JsonView;
@@ -34,15 +31,12 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class FlashcardController {
     private final CustomerRepository customerRepository;
-    private final DeckService deckService;
-    private final FolderJpaRepository folderRepository;
     private final FlashcardProgressRepository flashcardProgressRepository;
     private final ReviewLogRepository reviewLogRepository;
     private final FlashcardService flashcardService;
 
     private final ResourceAccessService resourceAccessService;
 
-    // create flashcard
     @PostMapping("/create")
     @JsonView(JsonViewConfig.Public.class)
     public ResponseEntity<?> createFlashcard(
@@ -80,7 +74,7 @@ public class FlashcardController {
 
         return ResponseEntity.badRequest().body("You do not have permission to create a deck here");
     }
-    // update flashcard
+
     @PostMapping("/update")
     @JsonView(JsonViewConfig.Public.class)
     public ResponseEntity<?> updateFlashcard(
@@ -110,7 +104,6 @@ public class FlashcardController {
         return ResponseEntity.badRequest().body("You do not have permission to create a deck here");
     }
 
-    // delete
     @DeleteMapping("/delete")
     @JsonView(JsonViewConfig.Public.class)
     public ResponseEntity<?> updateFlashcard(
@@ -137,7 +130,6 @@ public class FlashcardController {
 
         return ResponseEntity.badRequest().body("You do not have permission to create a deck here");
     }
-
 
     @PostMapping("/copyFlashcardToDeck")
     @JsonView(JsonViewConfig.Public.class)
@@ -179,7 +171,7 @@ public class FlashcardController {
         Flashcard newFlashcard = new Flashcard(deckResponse.getDeck(), flashcardResponse.getFlashcard().getFront(), flashcardResponse.getFlashcard().getBack());
         flashcardService.save(newFlashcard);
 
-        return ResponseEntity.ok("copied successfuly");
+        return ResponseEntity.ok("copied successfully");
     }
 
     @PostMapping("/moveFlashcardToOtherDeck")

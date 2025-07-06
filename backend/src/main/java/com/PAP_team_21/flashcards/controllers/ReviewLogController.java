@@ -25,7 +25,6 @@ public class ReviewLogController {
 
     private final ReviewLogRepository reviewLogRepository;
     private final CustomerRepository customerRepository;
-    private final FlashcardRepository flashcardRepository;
 
     @GetMapping("/getReviewLog/{id}")
     @JsonView(JsonViewConfig.Public.class)

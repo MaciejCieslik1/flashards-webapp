@@ -87,7 +87,7 @@ public class NotificationController {
         }
         Customer customerToSend = customerToSendOpt.get();
 
-        if (request.getEmail() != customer.getEmail()) {
+        if (!request.getEmail().equals(customer.getEmail())) {
             Notification notification = new Notification(customerToSend.getId(), request.getText());
             notificationRepository.save(notification);
             return ResponseEntity.ok(notification);

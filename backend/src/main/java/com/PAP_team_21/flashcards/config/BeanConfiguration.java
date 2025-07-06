@@ -5,13 +5,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 
@@ -66,7 +59,7 @@ public class BeanConfiguration {
         props.put("mail.smtp.starttls.enable", "true"); // enable STARTTLS
         props.put("mail.debug", "true");                // extensive logs for debug
         props.put("mail.transport.protocol", "smtp");   // set protocol
-        props.put("mail.smtp.auth", "true");            // enable stmp auth
+        props.put("mail.smtp.auth", "true");            // enable smtp auth
 
 
         return mailSender;

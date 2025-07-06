@@ -7,7 +7,6 @@ import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.cglib.core.Local;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -54,23 +53,6 @@ public class Notification {
     private List<Friendship> friendships;
 
     public Notification() {}
-
-    public Notification(int userId, boolean received, String text, LocalDateTime creationDate,
-                        LocalDateTime receivedDate) {
-        this.userId = userId;
-        this.received = received;
-        this.text = text;
-        this.creationDate = creationDate;
-        this.receivedDate = receivedDate;
-    }
-
-    public Notification(int userId, boolean received, String text, LocalDateTime receivedDate) {
-        this.userId = userId;
-        this.received = received;
-        this.text = text;
-        this.creationDate = LocalDateTime.now();
-        this.receivedDate = receivedDate;
-    }
 
     public Notification(int userId, boolean received, String text) {
         this.userId = userId;

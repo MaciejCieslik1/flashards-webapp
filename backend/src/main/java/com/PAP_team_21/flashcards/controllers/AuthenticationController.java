@@ -7,37 +7,18 @@ import com.PAP_team_21.flashcards.authentication.RegisterRequest;
 import com.PAP_team_21.flashcards.controllers.requests.*;
 import com.PAP_team_21.flashcards.entities.customer.Customer;
 import com.PAP_team_21.flashcards.entities.customer.CustomerRepository;
-import com.PAP_team_21.flashcards.entities.folderAccessLevel.FolderAccessLevel;
-import com.PAP_team_21.flashcards.entities.folderAccessLevel.FolderAccessLevelRepository;
 import com.PAP_team_21.flashcards.entities.login.Login;
 import com.PAP_team_21.flashcards.entities.login.LoginRepository;
-import com.PAP_team_21.flashcards.entities.userPreferences.UserPreferences;
-import com.PAP_team_21.flashcards.entities.userPreferences.UserPreferencesRepository;
 import com.PAP_team_21.flashcards.entities.userStatistics.UserStatistics;
 import com.PAP_team_21.flashcards.entities.userStatistics.UserStatisticsRepository;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.Response;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
-
-import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -53,7 +34,6 @@ public class AuthenticationController {
 
     @GetMapping("/oauth2/success")
     public  ResponseEntity<?> oauth2Success(Authentication authentication) {
-        // @TODO should this be verified ??
         try {
             return ResponseEntity.ok(new AuthenticationResponse(authenticationService.convertOAuth2ToJWT(authentication)));
         } catch (Exception e)
@@ -61,10 +41,6 @@ public class AuthenticationController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("exception occurred: " + e.getMessage());
         }
     }
-
-    // endpoints for oauth2 login are autmatically created by spring security at:
-    // http://localhost:8080/oauth2/authorization/<provider>
-
 
     @PostMapping("/register")
     public ResponseEntity<String> registerUser(
@@ -120,7 +96,7 @@ public class AuthenticationController {
     {
         try {
             authenticationService.verifyUser(request.getEmail(), request.getCode());
-            return ResponseEntity.ok("user verified successfuly");
+            return ResponseEntity.ok("user verified successfully");
         } catch (Exception e)
         {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("exception occurred: " + e.getMessage());
@@ -181,7 +157,7 @@ public class AuthenticationController {
     {
         try {
             authenticationService.changePassword(authentication, request.getOldPassword(), request.getNewPassword());
-            return ResponseEntity.ok("password changed successfuly");
+            return ResponseEntity.ok("password changed successfully");
         } catch (Exception e)
         {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("exception occurred: " + e.getMessage());
@@ -193,7 +169,7 @@ public class AuthenticationController {
     {
         try {
             authenticationService.changeEmail(authentication, request.getNewEmail());
-            return ResponseEntity.ok("email changed successfuly");
+            return ResponseEntity.ok("email changed successfully");
         } catch (Exception e)
         {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("exception occurred: " + e.getMessage());

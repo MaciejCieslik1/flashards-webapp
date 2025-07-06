@@ -12,10 +12,6 @@ import com.PAP_team_21.flashcards.entities.folderAccessLevel.FolderAccessLevelRe
 import com.PAP_team_21.flashcards.entities.reviewLog.ReviewLog;
 import com.PAP_team_21.flashcards.entities.reviewLog.ReviewLogRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,11 +26,6 @@ public class FolderService {
     private final ReviewLogRepository reviewLogRepository;
     private final FlashcardProgressRepository flashcardProgressRepository;
     private final FolderAccessLevelRepository folderAccessLevelRepository;
-
-    public boolean hasFolder(Folder folder)
-    {
-        return hasFolder(folder.getId());
-    }
 
     public boolean hasFolder(int id)
     {
@@ -59,11 +50,6 @@ public class FolderService {
     public List<Folder> findAllUserFolders(int userId) {
         return folderRepository.findAllUserFolders(userId);
     }
-
-    public List<Folder> findAllUserFolders(int userId, Pageable pageable) {
-        return folderRepository.findAllUserFolders(userId, pageable);
-    }
-
 
     public void prepareFolderToShare(Folder folder, Customer customer, AccessLevel accessLevel) {
         List<FolderAccessLevel> folderAccessLevels = folder.getAccessLevels();

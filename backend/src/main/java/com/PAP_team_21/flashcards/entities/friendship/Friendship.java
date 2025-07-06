@@ -60,10 +60,4 @@ public class Friendship {
         this.receiverId = receiverId;
         this.accepted = accepted;
     }
-
-    public Friendship(int senderId, int receiverId) {
-        this.senderId = senderId;
-        this.receiverId = receiverId;
-        this.accepted = false;
-    }
 }
