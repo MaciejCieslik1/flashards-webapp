@@ -75,8 +75,6 @@ public class AuthenticationService {
 
         FolderAccessLevel al = customer.getFolderAccessLevels().get(0);
 
-        // @TODO why customerReposiotory.save() doednt work - solution below works just fine
-
         Optional<Customer> opt = customerRepository.findByEmail(email);
         if(opt.isPresent())
         {
@@ -102,10 +100,7 @@ public class AuthenticationService {
                 email, password
         );
 
-        // this will throw an exception if the authentication fails
         authentication = authenticationManager.authenticate(authentication);
-
-        // at this point authentication is successful
 
         if(authentication != null && authentication.isAuthenticated())
         {
@@ -144,8 +139,7 @@ public class AuthenticationService {
                 user.setProfileCreationDate(LocalDateTime.now());
                 user = customerRepository.save(user);
             }
-//            Customer user = customerRepository.findOrCreate(email);
-            // String token = jwtService.generateToken(customer);
+
 
             Date issued = new Date(System.currentTimeMillis());
             SecretKey secretKey = Keys.hmacShaKeyFor(jwtSecret.getBytes());
@@ -272,7 +266,6 @@ public class AuthenticationService {
 
     private void handleVerificationCode(Customer customer) throws  MessagingException
     {
-        // generate code
         String code = generateVerificationCode(verificationCodeLength);
 
 
@@ -287,14 +280,11 @@ public class AuthenticationService {
             verification.newExpirationDate(verificationCodeExpirationMinutes);
         }
 
-        // save to db
         sentVerificationCodeRepository.save(verification);
-        // send email
         emailSender.sendVerificationCodeEmail(customer.getEmail(), code);
     }
 
     private void handleVerificationLink(Customer customer) throws MessagingException {
-        // generate code
         String code = generateVerificationCode(verificationCodeLength);
 
 
@@ -309,9 +299,7 @@ public class AuthenticationService {
             verification.newExpirationDate(verificationCodeExpirationMinutes);
         }
 
-        // save to db
         sentVerificationCodeRepository.save(verification);
-        // send email
         emailSender.sendVerificationLink(customer.getEmail(), code);
 
     }

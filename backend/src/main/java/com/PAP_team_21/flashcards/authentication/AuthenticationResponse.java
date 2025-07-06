@@ -10,8 +10,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class AuthenticationResponse {
-    /*
-    * represents a response sent back after successful customer authentication
-    * */
     private String token;
 }
