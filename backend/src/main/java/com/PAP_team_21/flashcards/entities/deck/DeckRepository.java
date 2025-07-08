@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-interface DeckRepository extends JpaRepository<Deck, Integer> {
+public  interface DeckRepository extends JpaRepository<Deck, Integer> {
 
     @Procedure(procedureName = "get_last_used_decks")
     List<Deck> getLastUsed(@Param("userId") int userId, @Param("howMany") int howMany);
