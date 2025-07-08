@@ -4,6 +4,7 @@ import com.PAP_team_21.flashcards.controllers.requests.UserPreferencesUpdateRequ
 import com.PAP_team_21.flashcards.entities.JsonViewConfig;
 import com.PAP_team_21.flashcards.entities.customer.Customer;
 import com.PAP_team_21.flashcards.entities.customer.CustomerRepository;
+import com.PAP_team_21.flashcards.entities.customer.CustomerService;
 import com.PAP_team_21.flashcards.entities.userPreferences.UserPreferences;
 import com.PAP_team_21.flashcards.entities.userPreferences.UserPreferencesRepository;
 import com.fasterxml.jackson.annotation.JsonView;
@@ -21,18 +22,20 @@ public class UserPreferencesController {
 
     private final UserPreferencesRepository userPreferencesRepository;
     private final CustomerRepository customerRepository;
+    private final CustomerService customerService;
 
     @GetMapping("/getUserPreferences")
     @JsonView(JsonViewConfig.Public.class)
     public ResponseEntity<?> getUserPreferences(Authentication authentication) {
-        String email = authentication.getName();
-        Optional<Customer> customerOpt = customerRepository.findByEmail(email);
-        if (customerOpt.isEmpty())
-        {
+        Customer customer;
+        try {
+            customer = customerService.checkForLoggedCustomer(authentication);
+        }
+        catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("No user with this id found");
         }
 
-        UserPreferences userPreferences = customerOpt.get().getUserPreferences();
+        UserPreferences userPreferences = customer.getUserPreferences();
 
         return ResponseEntity.ok(userPreferences);
     }

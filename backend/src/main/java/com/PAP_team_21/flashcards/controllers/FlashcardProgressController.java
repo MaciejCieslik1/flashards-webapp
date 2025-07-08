@@ -3,10 +3,9 @@ package com.PAP_team_21.flashcards.controllers;
 import com.PAP_team_21.flashcards.AccessLevel;
 import com.PAP_team_21.flashcards.entities.JsonViewConfig;
 import com.PAP_team_21.flashcards.entities.customer.Customer;
-import com.PAP_team_21.flashcards.entities.customer.CustomerRepository;
+import com.PAP_team_21.flashcards.entities.customer.CustomerService;
 import com.PAP_team_21.flashcards.entities.deck.Deck;
 import com.PAP_team_21.flashcards.entities.flashcard.Flashcard;
-import com.PAP_team_21.flashcards.entities.flashcard.FlashcardRepository;
 import com.PAP_team_21.flashcards.entities.flashcardProgress.FlashcardProgress;
 import com.PAP_team_21.flashcards.entities.flashcardProgress.FlashcardProgressRepository;
 import com.fasterxml.jackson.annotation.JsonView;
@@ -22,19 +21,19 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class FlashcardProgressController {
 
-    private final CustomerRepository customerRepository;
+    private final CustomerService customerService;
     private final FlashcardProgressRepository flashcardProgressRepository;
 
     @GetMapping("/getFlashcardProgress/{id}")
     @JsonView(JsonViewConfig.Public.class)
     public ResponseEntity<?> getFlashcardProgress(Authentication authentication, @PathVariable int id) {
-        String email = authentication.getName();
-        Optional<Customer> customerOpt = customerRepository.findByEmail(email);
-        if (customerOpt.isEmpty())
-        {
+        Customer customer;
+        try {
+            customer = customerService.checkForLoggedCustomer(authentication);
+        }
+        catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("No user with this id found");
         }
-        Customer customer = customerOpt.get();
 
         Optional<FlashcardProgress> flashcardProgressOpt = flashcardProgressRepository.findById(id);
         if (flashcardProgressOpt.isEmpty()) {

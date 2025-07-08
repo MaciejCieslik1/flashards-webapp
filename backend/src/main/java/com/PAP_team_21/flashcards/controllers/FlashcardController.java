@@ -22,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -140,18 +141,12 @@ public class FlashcardController {
     )
     {
         FlashcardAccessServiceResponse flashcardResponse;
-        try{
-            flashcardResponse = resourceAccessService.getFlashcardAccessLevel(authentication, flashcardId);
-        } catch (ResourceNotFoundException e)
-        {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-
         DeckAccessServiceResponse deckResponse;
         try{
-            deckResponse = resourceAccessService.getDeckAccessLevel(authentication, deckId);
-        } catch (ResourceNotFoundException e)
-        {
+            flashcardResponse = getFlashcardDeckPair(authentication, flashcardId, deckId).getLeft();
+            deckResponse = getFlashcardDeckPair(authentication, flashcardId, deckId).getRight();
+        }
+        catch (ResourceNotFoundException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
 
@@ -172,6 +167,13 @@ public class FlashcardController {
         flashcardService.save(newFlashcard);
 
         return ResponseEntity.ok("copied successfully");
+    }
+
+    private Pair<FlashcardAccessServiceResponse, DeckAccessServiceResponse> getFlashcardDeckPair(
+        Authentication authentication, int flashcardId, int deckId) {
+        FlashcardAccessServiceResponse flashcardResponse = resourceAccessService.getFlashcardAccessLevel(authentication, flashcardId);
+        DeckAccessServiceResponse deckResponse = resourceAccessService.getDeckAccessLevel(authentication, deckId);
+        return Pair.of(flashcardResponse, deckResponse);
     }
 
     @PostMapping("/moveFlashcardToOtherDeck")

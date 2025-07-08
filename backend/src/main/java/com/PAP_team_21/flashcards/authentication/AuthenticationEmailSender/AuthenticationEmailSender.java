@@ -1,6 +1,5 @@
 package com.PAP_team_21.flashcards.authentication.AuthenticationEmailSender;
 
-import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,9 +15,6 @@ public class AuthenticationEmailSender {
 
     @Value("${links.verify-user}")
     private String verifyUserLink;
-
-    @Value("${links.verify-folder-share}")
-    private String verifyFolderShareLink;
 
     @Async
     public void sendVerificationLink(String email, String verificationCode)

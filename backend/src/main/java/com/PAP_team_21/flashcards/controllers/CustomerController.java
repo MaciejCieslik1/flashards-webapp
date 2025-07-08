@@ -44,17 +44,17 @@ public class CustomerController {
     @GetMapping("/findById/{id}")
     @JsonView(JsonViewConfig.Public.class)
     public ResponseEntity<?> getCustomerById(Authentication authentication, @PathVariable int id) {
-        String email = authentication.getName();
-        Optional<Customer> customerOpt= customerRepository.findByEmail(email);
-        if(customerOpt.isEmpty())
-        {
+        try {
+            customerService.checkForLoggedCustomer(authentication);
+        }
+        catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("No user with this id found");
         }
 
-        Optional<Customer> customer = customerRepository.findById(id);
+        Optional<Customer> customerOpt  = customerRepository.findById(id);
 
-        if (customer.isPresent()) {
-            return ResponseEntity.ok(customer.get());
+        if (customerOpt.isPresent()) {
+            return ResponseEntity.ok(customerOpt.get());
         }
         return ResponseEntity.badRequest().body("Customer not found");
     }
@@ -62,27 +62,28 @@ public class CustomerController {
     @GetMapping("/findByEmail/{email}")
     @JsonView(JsonViewConfig.Public.class)
     public ResponseEntity<?> getCustomerByEmail(Authentication authentication, @PathVariable String email) {
-        String userEmail = authentication.getName();
-        Optional<Customer> customerOpt= customerRepository.findByEmail(userEmail);
-        if(customerOpt.isEmpty())
-        {
+        try {
+            customerService.checkForLoggedCustomer(authentication);
+        }
+        catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("No user with this id found");
         }
 
-        Optional<Customer> customer = customerRepository.findByEmail(email);
+        Optional<Customer> customerOpt = customerRepository.findByEmail(email);
 
-        if (customer.isPresent()) {
-            return ResponseEntity.ok(customer.get());
+        if (customerOpt.isPresent()) {
+            return ResponseEntity.ok(customerOpt.get());
         }
         return ResponseEntity.badRequest().body("Customer not found");
     }
 
     @PostMapping("/updateUsername")
     public ResponseEntity<?> updateUsername(Authentication authentication, @RequestBody UpdateUsernameRequest request) {
-        String email = authentication.getName();
-        Optional<Customer> customerOpt= customerRepository.findByEmail(email);
-        if(customerOpt.isEmpty())
-        {
+        Customer customer;
+        try {
+            customer = customerService.checkForLoggedCustomer(authentication);
+        }
+        catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("No user with this id found");
         }
 
@@ -92,7 +93,6 @@ public class CustomerController {
             return ResponseEntity.badRequest().body("Username cannot be empty");
         }
 
-        Customer customer = customerOpt.get();
         customer.setUsername(newUsername);
         customerRepository.save(customer);
         return ResponseEntity.ok("Username updated successfully");
@@ -100,10 +100,11 @@ public class CustomerController {
 
     @PostMapping("/updateBio")
     public ResponseEntity<?> updateBio(Authentication authentication, @RequestBody UpdateBioRequest request) {
-        String email = authentication.getName();
-        Optional<Customer> customerOpt= customerRepository.findByEmail(email);
-        if(customerOpt.isEmpty())
-        {
+        Customer customer;
+        try {
+            customer = customerService.checkForLoggedCustomer(authentication);
+        }
+        catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("No user with this id found");
         }
 
@@ -113,7 +114,6 @@ public class CustomerController {
             return ResponseEntity.badRequest().body("Biography cannot be empty");
         }
 
-        Customer customer = customerOpt.get();
         customer.setBio(newBio);
         customerRepository.save(customer);
         return ResponseEntity.ok("Biography updated successfully");
@@ -121,12 +121,13 @@ public class CustomerController {
 
     @PostMapping("/updateAvatar")
     public ResponseEntity<?> updateAvatar(Authentication authentication, @RequestParam("avatar") MultipartFile avatar) {
-        String email = authentication.getName();
-        Optional<Customer> customerOpt = customerRepository.findByEmail(email);
-        if (customerOpt.isEmpty()) {
+        Customer customer;
+        try {
+            customer = customerService.checkForLoggedCustomer(authentication);
+        }
+        catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("No user with this id found");
         }
-
         String newAvatarPath = "/app/avatars/new_profile_picture.jpg";
 
         File avatarFile = new File(newAvatarPath);
@@ -139,7 +140,6 @@ public class CustomerController {
                     .body("Failed to upload avatar:" + e.getMessage());
         }
 
-        Customer customer = customerOpt.get();
         customer.setProfilePicturePath(newAvatarPath);
         customerRepository.save(customer);
 
@@ -150,10 +150,10 @@ public class CustomerController {
     @GetMapping("/findByUsername/{username}")
     @JsonView(JsonViewConfig.Public.class)
     public ResponseEntity<?> getCustomersByUsername(Authentication authentication, @PathVariable String username) {
-        String userEmail = authentication.getName();
-        Optional<Customer> customerOpt= customerRepository.findByEmail(userEmail);
-        if(customerOpt.isEmpty())
-        {
+        try {
+            customerService.checkForLoggedCustomer(authentication);
+        }
+        catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("No user with this id found");
         }
 
@@ -167,13 +167,13 @@ public class CustomerController {
 
     @DeleteMapping("/delete")
     public ResponseEntity<?> deleteCustomer(Authentication authentication) {
-        String email = authentication.getName();
-        Optional<Customer> customerOpt = customerRepository.findByEmail(email);
-
-        if(customerOpt.isEmpty()) {
-            return ResponseEntity.badRequest().body("No user found with this id");
+        Customer customer;
+        try {
+            customer = customerService.checkForLoggedCustomer(authentication);
         }
-        Customer customer = customerOpt.get();
+        catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("No user with this id found");
+        }
         folderJpaRepository.delete(customer.getRootFolder());
         customerRepository.delete(customer);
         return ResponseEntity.ok("Customer deleted successfully");
@@ -182,14 +182,13 @@ public class CustomerController {
     @GetMapping("/getSelf")
     @JsonView(JsonViewConfig.Internal.class)
     public ResponseEntity<?> getSelf(Authentication authentication) {
-        String email = authentication.getName();
-        Optional<Customer> customerOpt = customerRepository.findByEmail(email);
-
-        if (customerOpt.isEmpty()) {
+        Customer customer;
+        try {
+            customer = customerService.checkForLoggedCustomer(authentication);
+        }
+        catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("No user with this id found");
         }
-
-        Customer customer = customerOpt.get();
 
         byte[] avatar = customer.getAvatar();
         if (!(avatar == null)) {
@@ -204,13 +203,13 @@ public class CustomerController {
     @GetMapping("/getReceivedFriendships")
     @JsonView(JsonViewConfig.Public.class)
     public ResponseEntity<?> getReceivedFriendships(Authentication authentication) {
-        String email = authentication.getName();
-        Optional<Customer> customerOpt= customerRepository.findByEmail(email);
-        if(customerOpt.isEmpty())
-        {
+        Customer customer;
+        try {
+            customer = customerService.checkForLoggedCustomer(authentication);
+        }
+        catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("No user with this id found");
         }
-        Customer customer = customerOpt.get();
 
         List<Friendship> receivedFriendships = customer.getReceivedFriendships();
 
@@ -227,13 +226,13 @@ public class CustomerController {
     @GetMapping("/getSentFriendships")
     @JsonView(JsonViewConfig.Public.class)
     public ResponseEntity<?> getSentFriendships(Authentication authentication) {
-        String email = authentication.getName();
-        Optional<Customer> customerOpt= customerRepository.findByEmail(email);
-        if(customerOpt.isEmpty())
-        {
+        Customer customer;
+        try {
+            customer = customerService.checkForLoggedCustomer(authentication);
+        }
+        catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("No user with this id found");
         }
-        Customer customer = customerOpt.get();
 
         List<Friendship> sentFriendships = customer.getSentFriendships();
         return ResponseEntity.ok(sentFriendships);
@@ -242,13 +241,13 @@ public class CustomerController {
     @GetMapping("/getNotifications")
     @JsonView(JsonViewConfig.Public.class)
     public ResponseEntity<?> getNotifications(Authentication authentication) {
-        String email = authentication.getName();
-        Optional<Customer> customerOpt= customerRepository.findByEmail(email);
-        if(customerOpt.isEmpty())
-        {
+        Customer customer;
+        try {
+            customer = customerService.checkForLoggedCustomer(authentication);
+        }
+        catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("No user with this id found");
         }
-        Customer customer = customerOpt.get();
 
         List<Notification> notifications = customer.getNotifications();
         return ResponseEntity.ok(notifications);
@@ -257,13 +256,13 @@ public class CustomerController {
     @GetMapping("/getFriends")
     @JsonView(JsonViewConfig.Public.class)
     public ResponseEntity<?> getFriends(Authentication authentication) {
-        String email = authentication.getName();
-        Optional<Customer> customerOpt = customerRepository.findByEmail(email);
-        if (customerOpt.isEmpty())
-        {
+        Customer customer;
+        try {
+            customer = customerService.checkForLoggedCustomer(authentication);
+        }
+        catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("No user with this id found");
         }
-        Customer customer = customerOpt.get();
 
         List<Customer> friends = new ArrayList<>();
 
@@ -290,49 +289,64 @@ public class CustomerController {
     @GetMapping("/getFriendById/{id}")
     @JsonView(JsonViewConfig.Public.class)
     public ResponseEntity<?> getFriendById(Authentication authentication, @PathVariable int id) {
-        String email = authentication.getName();
-        Optional<Customer> customerOpt = customerRepository.findByEmail(email);
-        if (customerOpt.isEmpty())
-        {
+        Customer customer;
+        try {
+            customer = customerService.checkForLoggedCustomer(authentication);
+        }
+        catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("No user with this id found");
         }
-        Customer customer = customerOpt.get();
 
         Optional<Customer> customerToFindOpt = customerRepository.findById(id);
+
+        return findFriend(customer, customerToFindOpt);
+
+    }
+
+    private ResponseEntity<?> findFriend(Customer customer, Optional<Customer> customerToFindOpt) {
         if (customerToFindOpt.isEmpty())
         {
             return ResponseEntity.badRequest().body("No friend with this id found");
         }
 
-        List<Friendship> possibleFriendships = customer.getSentFriendships();
-
-        Customer friend = null;
-        for (Friendship friendship : possibleFriendships) {
-            if (friendship.getReceiverId() == id && friendship.isAccepted()) {
-                friend = friendship.getReceiver();
-                break;
-            }
-        }
-
+        int idOfWantedPerson = customerToFindOpt.get().getId();
+        Customer friend = findFriendInSentList(customer, idOfWantedPerson);
         if (friend == null) {
-            possibleFriendships = customer.getReceivedFriendships();
-            for (Friendship friendship : possibleFriendships) {
-                if (friendship.getSenderId() == id && friendship.isAccepted()) {
-                    friend = friendship.getSender();
-                    break;
-                }
-            }
+            friend = findFriendInReceivedList(customer, idOfWantedPerson);
         }
-
         if (friend == null) {
             return ResponseEntity.badRequest().body("No friend with this id found");
         }
+        return fetchAvatar(friend);
+    }
+
+    private Customer findFriendInSentList(Customer customer, int idOfWantedPerson) {
+        List<Friendship> possibleFriendships = customer.getSentFriendships();
+        for (Friendship friendship : possibleFriendships) {
+            if (friendship.getReceiverId() == idOfWantedPerson && friendship.isAccepted()) {
+                return friendship.getReceiver();
+            }
+        }
+        return null;
+    }
+
+    private Customer findFriendInReceivedList(Customer customer, int idOfWantedPerson) {
+        List<Friendship> possibleFriendships = customer.getReceivedFriendships();
+        for (Friendship friendship : possibleFriendships) {
+            if (friendship.getReceiverId() == idOfWantedPerson && friendship.isAccepted()) {
+                return friendship.getSender();
+            }
+        }
+        return null;
+    }
+
+    private ResponseEntity<?> fetchAvatar(Customer friend) {
         String avatarPath = friend.getProfilePicturePath();
 
         try {
             Path avatarFilePath = Paths.get("/app/avatars", avatarPath);
-
             byte[] avatarBytes = Files.readAllBytes(avatarFilePath);
+
             CustomerWithAvatar friendWithAvatar = new CustomerWithAvatar(friend, avatarBytes);
             return ResponseEntity.ok(friendWithAvatar);
         }
@@ -344,68 +358,29 @@ public class CustomerController {
     @GetMapping("/getFriendByEmail/{email}")
     @JsonView(JsonViewConfig.Public.class)
     public ResponseEntity<?> getFriendByEmail(Authentication authentication, @PathVariable String email) {
-        String userEmail = authentication.getName();
-        Optional<Customer> customerOpt = customerRepository.findByEmail(userEmail);
-        if (customerOpt.isEmpty())
-        {
+        Customer customer;
+        try {
+            customer = customerService.checkForLoggedCustomer(authentication);
+        }
+        catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("No user with this id found");
         }
-        Customer customer = customerOpt.get();
 
         Optional<Customer> customerToFindOpt = customerRepository.findByEmail(email);
-        if (customerToFindOpt.isEmpty())
-        {
-            return ResponseEntity.badRequest().body("No friend with this id found");
-        }
-
-        int id = customerToFindOpt.get().getId();
-        List<Friendship> possibleFriendships = customer.getSentFriendships();
-
-        Customer friend = null;
-        for (Friendship friendship : possibleFriendships) {
-            if (friendship.getReceiverId() == id && friendship.isAccepted()) {
-                friend = friendship.getReceiver();
-                break;
-            }
-        }
-
-        if (friend == null) {
-            possibleFriendships = customer.getReceivedFriendships();
-            for (Friendship friendship : possibleFriendships) {
-                if (friendship.getSenderId() == id && friendship.isAccepted()) {
-                    friend = friendship.getSender();
-                    break;
-                }
-            }
-        }
-
-        if (friend == null) {
-            return ResponseEntity.badRequest().body("No friend with this id found");
-        }
-
-        String avatarPath = friend.getProfilePicturePath();
-
-        try {
-            Path avatarFilePath = Paths.get("/app/avatars", avatarPath);
-            byte[] avatarBytes = Files.readAllBytes(avatarFilePath);
-
-            CustomerWithAvatar friendWithAvatar = new CustomerWithAvatar(friend, avatarBytes);
-            return ResponseEntity.ok(friendWithAvatar);
-        }
-        catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error fetching avatar");
-        }
+        return findFriend(customer, customerToFindOpt);
     }
+
+
 
     @PostMapping("/sendFriendshipOfferById/{id}")
     public ResponseEntity<?> sendFriendshipOfferById(Authentication authentication, @PathVariable int id) {
-        String email = authentication.getName();
-        Optional<Customer> customerOpt = customerRepository.findByEmail(email);
-        if (customerOpt.isEmpty())
-        {
+        Customer customer;
+        try {
+            customer = customerService.checkForLoggedCustomer(authentication);
+        }
+        catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("No user with this id found");
         }
-        Customer customer = customerOpt.get();
 
         Optional<Customer> customerToAddOpt = customerRepository.findById(id);
         if (customerToAddOpt.isEmpty()) {
@@ -430,13 +405,13 @@ public class CustomerController {
 
     @PostMapping("/sendFriendshipOfferByEmail/{email}")
     public ResponseEntity<?> sendFriendshipOfferByEmail(Authentication authentication, @PathVariable String email) {
-        String userEmail = authentication.getName();
-        Optional<Customer> customerOpt = customerRepository.findByEmail(userEmail);
-        if (customerOpt.isEmpty())
-        {
+        Customer customer;
+        try {
+            customer = customerService.checkForLoggedCustomer(authentication);
+        }
+        catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("No user with this id found");
         }
-        Customer customer = customerOpt.get();
 
         Optional<Customer> customerToAddOpt = customerRepository.findByEmail(email);
         if (customerToAddOpt.isEmpty()) {
@@ -462,13 +437,13 @@ public class CustomerController {
 
     @PostMapping("/acceptFriendshipOfferById/{id}")
     public ResponseEntity<?> acceptFriendshipOfferById(Authentication authentication, @PathVariable int id) {
-        String email = authentication.getName();
-        Optional<Customer> customerOpt = customerRepository.findByEmail(email);
-        if (customerOpt.isEmpty())
-        {
+        Customer customer;
+        try {
+            customer = customerService.checkForLoggedCustomer(authentication);
+        }
+        catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("No user with this id found");
         }
-        Customer customer = customerOpt.get();
 
         Optional<Friendship> friendshipOpt = friendshipRepository.findById(id);
         if (friendshipOpt.isEmpty()) {

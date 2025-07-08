@@ -3,7 +3,7 @@ package com.PAP_team_21.flashcards.controllers;
 import com.PAP_team_21.flashcards.AccessLevel;
 import com.PAP_team_21.flashcards.entities.TxtLoader;
 import com.PAP_team_21.flashcards.entities.customer.Customer;
-import com.PAP_team_21.flashcards.entities.customer.CustomerRepository;
+import com.PAP_team_21.flashcards.entities.customer.CustomerService;
 import com.PAP_team_21.flashcards.entities.deck.Deck;
 import com.PAP_team_21.flashcards.entities.deck.DeckService;
 import com.PAP_team_21.flashcards.entities.folder.Folder;
@@ -24,19 +24,19 @@ public class TxtLoaderController {
     private final TxtLoader txtLoader;
     private final DeckService deckService;
     private final FolderJpaRepository folderJpaRepository;
-    private final CustomerRepository customerRepository;
+    private final CustomerService customerService;
 
     @PostMapping("/loadDeckTxt")
     public ResponseEntity<?> loadDeckTxt(Authentication authentication,
                                          @RequestParam("fileToLoad") MultipartFile file,
                                          @RequestParam("folderId") int folderId) {
-        String email = authentication.getName();
-        Optional<Customer> customerOpt = customerRepository.findByEmail(email);
-
-        if (customerOpt.isEmpty()) {
+        Customer customer;
+        try {
+            customer = customerService.checkForLoggedCustomer(authentication);
+        }
+        catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("No user with this id found");
         }
-        Customer customer = customerOpt.get();
 
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body("File cannot be empty");

@@ -4,6 +4,7 @@ import com.PAP_team_21.flashcards.entities.CustomerWithAvatar;
 import com.PAP_team_21.flashcards.entities.JsonViewConfig;
 import com.PAP_team_21.flashcards.entities.customer.Customer;
 import com.PAP_team_21.flashcards.entities.customer.CustomerRepository;
+import com.PAP_team_21.flashcards.entities.customer.CustomerService;
 import com.PAP_team_21.flashcards.entities.friendship.Friendship;
 import com.PAP_team_21.flashcards.entities.friendship.FriendshipRepository;
 import com.fasterxml.jackson.annotation.JsonView;
@@ -21,33 +22,38 @@ public class FriendshipController {
 
     private final FriendshipRepository friendshipRepository;
     private final CustomerRepository customerRepository;
+    private final CustomerService customerService;
 
     @GetMapping("/getFriendship/{id}")
     @JsonView(JsonViewConfig.Public.class)
     public ResponseEntity<?> getFriendships(Authentication authentication, @PathVariable int id) {
-        String email = authentication.getName();
-        Optional<Customer> customerOpt = customerRepository.findByEmail(email);
-        if(customerOpt.isEmpty())
-        {
-            return ResponseEntity.badRequest().body("No user with this id found");
+        Optional<Customer> friendOpt;
+        try {
+            friendOpt = manageAuthenticationAndFindFriendOpt(authentication, id);
         }
-        Customer customer = customerOpt.get();
-
-        Optional<Friendship> friendshipOpt = friendshipRepository.findById(id);
-        if (friendshipOpt.isEmpty()) {
-            return ResponseEntity.badRequest().body("No friendship with this id found");
+        catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e);
         }
-        Friendship friendship = friendshipOpt.get();
+        return getFriendWithAvatarResponseEntity(friendOpt);
+    }
 
+    private Optional<Customer> manageAuthenticationAndFindFriendOpt(Authentication authentication, int id) {
+        Customer customer = customerService.checkForLoggedCustomer(authentication);
+        Friendship friendship;
+        friendship = getFriendship(id);
         Optional<Customer> friendOpt;
         if (friendship.getReceiverId() == customer.getId()) {
             friendOpt = customerRepository.findById(friendship.getSenderId());
         }
-
         else {
             friendOpt = customerRepository.findById(friendship.getReceiverId());
         }
-        return getFriendWithAvatarResponseEntity(friendOpt);
+        return friendOpt;
+    }
+
+    private Friendship getFriendship(int id) {
+        return friendshipRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Friendship with id " + id + " not found"));
     }
 
     public ResponseEntity<?> getFriendWithAvatarResponseEntity(Optional<Customer> friendOpt) {
@@ -67,19 +73,21 @@ public class FriendshipController {
 
     @DeleteMapping("/delete")
     public ResponseEntity<?> deleteFriendship(Authentication authentication, @RequestParam int friendshipId) {
-        String email = authentication.getName();
-        Optional<Customer> customerOpt = customerRepository.findByEmail(email);
-        if(customerOpt.isEmpty())
-        {
+        Customer customer;
+        try {
+            customer = customerService.checkForLoggedCustomer(authentication);
+        }
+        catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("No user with this id found");
         }
-        Customer customer = customerOpt.get();
 
-        Optional<Friendship> friendshipOpt = friendshipRepository.findById(friendshipId);
-        if (friendshipOpt.isEmpty()) {
+        Friendship friendship;
+        try {
+            friendship = getFriendship(friendshipId);
+        }
+        catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("No friendship with this id found");
         }
-        Friendship friendship = friendshipOpt.get();
 
         if (friendship.getReceiverId() == customer.getId() || friendship.getSenderId() == customer.getId()) {
             friendshipRepository.delete(friendship);
@@ -88,5 +96,4 @@ public class FriendshipController {
 
         return ResponseEntity.badRequest().body("User do not have access to this friendship");
     }
-
 }

@@ -4,6 +4,7 @@ import com.PAP_team_21.flashcards.controllers.DTOMappers.UserStatisticsMapper;
 import com.PAP_team_21.flashcards.controllers.requests.UserStatisticsUpdateRequest;
 import com.PAP_team_21.flashcards.entities.customer.Customer;
 import com.PAP_team_21.flashcards.entities.customer.CustomerRepository;
+import com.PAP_team_21.flashcards.entities.customer.CustomerService;
 import com.PAP_team_21.flashcards.entities.userStatistics.UserStatistics;
 import com.PAP_team_21.flashcards.entities.userStatistics.UserStatisticsRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,21 +21,23 @@ import java.util.Optional;
 public class UserStatisticsController {
     private final UserStatisticsRepository userStatisticsRepository;
     private final CustomerRepository customerRepository;
+    private final CustomerService customerService;
     private final UserStatisticsMapper userStatisticsMapper;
 
     @GetMapping("/getUserStatistics")
     @Transactional
     public ResponseEntity<?> getUserStatistics(Authentication authentication) {
-        String email = authentication.getName();
-        Optional<Customer> customerOpt = customerRepository.findByEmail(email);
-        if (customerOpt.isEmpty())
-        {
+        Customer customer;
+        try {
+            customer = customerService.checkForLoggedCustomer(authentication);
+        }
+        catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("No user with this id found");
         }
 
-        UserStatistics userStatistics = customerOpt.get().getUserStatistics();
+        UserStatistics userStatistics = customer.getUserStatistics();
 
-        return ResponseEntity.ok(userStatisticsMapper.toDTO(customerOpt.get(), userStatistics));
+        return ResponseEntity.ok(userStatisticsMapper.toDTO(customer, userStatistics));
     }
 
     @PostMapping("/update")

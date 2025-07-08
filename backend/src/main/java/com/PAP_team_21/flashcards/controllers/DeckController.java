@@ -10,7 +10,7 @@ import com.PAP_team_21.flashcards.controllers.requests.DeckCreationRequest;
 import com.PAP_team_21.flashcards.controllers.requests.DeckUpdateRequest;
 import com.PAP_team_21.flashcards.entities.JsonViewConfig;
 import com.PAP_team_21.flashcards.entities.customer.Customer;
-import com.PAP_team_21.flashcards.entities.customer.CustomerRepository;
+import com.PAP_team_21.flashcards.entities.customer.CustomerService;
 import com.PAP_team_21.flashcards.entities.deck.Deck;
 import com.PAP_team_21.flashcards.entities.deck.DeckService;
 import com.PAP_team_21.flashcards.entities.folder.Folder;
@@ -23,14 +23,13 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/deck")
 @RequiredArgsConstructor
 public class DeckController {
     private final ResourceAccessService resourceAccessService;
-    private final CustomerRepository customerRepository;
+    private final CustomerService customerService;
     private final DeckService deckService;
     private final DeckMapper deckMapper;
     private final FolderService folderService;
@@ -72,57 +71,58 @@ public class DeckController {
             return ResponseEntity.badRequest().body("howMany must be greater than 0");
         }
 
-        String email = authentication.getName();
-        Optional<Customer> customerOpt = customerRepository.findByEmail(email);
-        if(customerOpt.isEmpty())
-        {
-            return ResponseEntity.badRequest().body("Customer not found");
+        Customer customer;
+        try {
+            customer = customerService.checkForLoggedCustomer(authentication);
+        }
+        catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("No user with this id found");
         }
 
-        List<Deck> decks = deckService.getLastUsedDecks(customerOpt.get().getId(), howMany);
-        return ResponseEntity.ok(deckMapper.toDTO(customerOpt.get(), decks));
+        List<Deck> decks = deckService.getLastUsedDecks(customer.getId(), howMany);
+        return ResponseEntity.ok(deckMapper.toDTO(customer, decks));
     }
 
     @GetMapping("/getAllDecks")
     @JsonView(JsonViewConfig.Public.class)
     public ResponseEntity<?> getAllDecks(Authentication authentication)
     {
-        String email = authentication.getName();
-        Optional<Customer> customerOpt = customerRepository.findByEmail(email);
-        if(customerOpt.isEmpty())
-        {
-            return ResponseEntity.badRequest().body("Customer not found");
+        Customer customer;
+        try {
+            customer = customerService.checkForLoggedCustomer(authentication);
+        }
+        catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("No user with this id found");
         }
 
-        List<Deck> result = new ArrayList<>();
-        List<Folder> folders = folderService.findAllUserFolders(customerOpt.get().getId());
-
-        for(Folder f: folders)
-        {
-            result.addAll(f.getDecks());
-        }
+        List<Deck> result = findDecks(customer);
         return ResponseEntity.ok(result);
     }
 
     @GetMapping("/getAllDecksInfo")
     public ResponseEntity<?> getAllDecksInfo(Authentication authentication)
     {
-        String email = authentication.getName();
-        Optional<Customer> customerOpt = customerRepository.findByEmail(email);
-        if(customerOpt.isEmpty())
-        {
-            return ResponseEntity.badRequest().body("Customer not found");
+        Customer customer;
+        try {
+            customer = customerService.checkForLoggedCustomer(authentication);
         }
+        catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("No user with this id found");
+        }
+        List<Deck> result = findDecks(customer);
 
+        return ResponseEntity.ok(deckMapper.toDTO(customer, result));
+    }
+
+    private List<Deck> findDecks(Customer customer) {
         List<Deck> result = new ArrayList<>();
-        List<Folder> folders = folderService.findAllUserFolders(customerOpt.get().getId());
+        List<Folder> folders = folderService.findAllUserFolders(customer.getId());
 
         for(Folder f: folders)
         {
             result.addAll(f.getDecks());
         }
-
-        return ResponseEntity.ok(deckMapper.toDTO(customerOpt.get(), result));
+        return result;
     }
 
     @PostMapping("/create")
@@ -208,7 +208,6 @@ public class DeckController {
 
         if(al != null)
         {
-            // deckService.delete(response.getDeck());
             return ResponseEntity.ok(response.getDeck());
         }
         return ResponseEntity.badRequest().body("You do not have permission to get this deck");
@@ -218,13 +217,13 @@ public class DeckController {
     @JsonView(JsonViewConfig.Public.class)
     public ResponseEntity<?> getDeckInfoById(Authentication authentication, @RequestParam int deckId)
     {
-        String email = authentication.getName();
-        Optional<Customer> customerOpt = customerRepository.findByEmail(email);
-        if(customerOpt.isEmpty())
-        {
-            return ResponseEntity.badRequest().body("Customer not found");
+        Customer customer;
+        try {
+            customer = customerService.checkForLoggedCustomer(authentication);
         }
-
+        catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("No user with this id found");
+        }
         DeckAccessServiceResponse response;
         try{
             response = resourceAccessService.getDeckAccessLevel(authentication,deckId);
@@ -235,7 +234,7 @@ public class DeckController {
 
         if(al != null)
         {
-            return ResponseEntity.ok(deckMapper.toDTO(customerOpt.get(), response.getDeck()));
+            return ResponseEntity.ok(deckMapper.toDTO(customer, response.getDeck()));
         }
         return ResponseEntity.badRequest().body("You do not have permission to get this deck");
     }

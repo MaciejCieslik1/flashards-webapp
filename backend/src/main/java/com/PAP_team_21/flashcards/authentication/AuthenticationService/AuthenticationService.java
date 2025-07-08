@@ -15,7 +15,6 @@ import com.PAP_team_21.flashcards.entities.userStatistics.UserStatistics;
 import com.PAP_team_21.flashcards.entities.userStatistics.UserStatisticsRepository;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -64,7 +63,7 @@ public class AuthenticationService {
     @Value("${verification-code.expiration-minutes}")
     private int verificationCodeExpirationMinutes;
 
-    public void registerUser(String email, String name,  String password) throws RuntimeException, MessagingException{
+    public void registerUser(String email, String name,  String password) throws RuntimeException {
         verifyEmailCorrectness(email);
         String passwordHash = passwordEncoder.encode(password);
 
@@ -131,16 +130,11 @@ public class AuthenticationService {
 
             Optional<Customer> userOptional = customerRepository.findByEmail(email);
             Customer user;
-            if(userOptional.isPresent())
-            {
-                user = userOptional.get();
-            } else {
+            if (userOptional.isEmpty()){
                 user = new Customer(name, email, null);
                 user.setProfileCreationDate(LocalDateTime.now());
-                user = customerRepository.save(user);
+                customerRepository.save(user);
             }
-
-
             Date issued = new Date(System.currentTimeMillis());
             SecretKey secretKey = Keys.hmacShaKeyFor(jwtSecret.getBytes());
 
@@ -206,8 +200,7 @@ public class AuthenticationService {
         }
     }
 
-    public void forgotPasswordRequest(String email) throws RuntimeException, MessagingException
-    {
+    public void forgotPasswordRequest(String email) throws RuntimeException {
         verifyEmailCorrectness(email);
         Optional<Customer> customerOptional = customerRepository.findByEmail(email);
 
@@ -264,12 +257,21 @@ public class AuthenticationService {
         }
     }
 
-    private void handleVerificationCode(Customer customer) throws  MessagingException
+    private void handleVerificationCode(Customer customer)
     {
         String code = generateVerificationCode(verificationCodeLength);
+        manageVerificationCode(customer, code);
+        emailSender.sendVerificationCodeEmail(customer.getEmail(), code);
+    }
 
-
+    private void manageVerificationCode(Customer customer, String code) {
         SentVerificationCode verification = customer.getSentVerificationCode();
+        verification = setVerificationCodeProperties(verification, code ,customer);
+        sentVerificationCodeRepository.save(verification);
+    }
+
+    private SentVerificationCode setVerificationCodeProperties(SentVerificationCode verification,
+                                                              String code, Customer customer) {
         if(verification == null)
         {
             verification = new SentVerificationCode(code, customer, verificationCodeExpirationMinutes);
@@ -279,12 +281,10 @@ public class AuthenticationService {
             verification.setCode(code);
             verification.newExpirationDate(verificationCodeExpirationMinutes);
         }
-
-        sentVerificationCodeRepository.save(verification);
-        emailSender.sendVerificationCodeEmail(customer.getEmail(), code);
+        return verification;
     }
 
-    private void handleVerificationLink(Customer customer) throws MessagingException {
+    private void handleVerificationLink(Customer customer) {
         String code = generateVerificationCode(verificationCodeLength);
 
 
@@ -315,7 +315,7 @@ public class AuthenticationService {
         return code.toString();
     }
 
-    public void resendVerificationCode(String email) throws RuntimeException, MessagingException{
+    public void resendVerificationCode(String email) throws RuntimeException {
         verifyEmailCorrectness(email);
         Optional<Customer> customerOptional = customerRepository.findByEmail(email);
 
@@ -327,7 +327,7 @@ public class AuthenticationService {
         handleVerificationCode(customerOptional.get());
     }
 
-    public void resendVerificationLink(String email) throws RuntimeException, MessagingException{
+    public void resendVerificationLink(String email) throws RuntimeException {
         verifyEmailCorrectness(email);
         Optional<Customer> customerOptional = customerRepository.findByEmail(email);
 
@@ -348,7 +348,7 @@ public class AuthenticationService {
         }
     }
 
-    public void changeEmail(Authentication authentication, String newEmail) throws Exception
+    public void changeEmail(Authentication authentication, String newEmail)
     {
         verifyEmailCorrectness(newEmail);
         Customer customer = extractCustomer(authentication);
