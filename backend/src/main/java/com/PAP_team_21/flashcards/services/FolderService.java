@@ -1,4 +1,4 @@
-package com.PAP_team_21.flashcards.entities.folder;
+package com.PAP_team_21.flashcards.services;
 
 import com.PAP_team_21.flashcards.AccessLevel;
 import com.PAP_team_21.flashcards.UserAnswer;
@@ -7,6 +7,8 @@ import com.PAP_team_21.flashcards.entities.deck.Deck;
 import com.PAP_team_21.flashcards.entities.flashcard.Flashcard;
 import com.PAP_team_21.flashcards.entities.flashcardProgress.FlashcardProgress;
 import com.PAP_team_21.flashcards.entities.flashcardProgress.FlashcardProgressRepository;
+import com.PAP_team_21.flashcards.entities.folder.Folder;
+import com.PAP_team_21.flashcards.entities.folder.FolderJpaRepository;
 import com.PAP_team_21.flashcards.entities.folderAccessLevel.FolderAccessLevel;
 import com.PAP_team_21.flashcards.entities.folderAccessLevel.FolderAccessLevelRepository;
 import com.PAP_team_21.flashcards.entities.reviewLog.ReviewLog;

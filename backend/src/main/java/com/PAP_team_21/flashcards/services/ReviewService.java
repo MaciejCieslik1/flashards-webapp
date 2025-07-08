@@ -1,10 +1,9 @@
-package com.PAP_team_21.flashcards.ReviewService;
+package com.PAP_team_21.flashcards.services;
 
 import com.PAP_team_21.flashcards.UserAnswer;
 import com.PAP_team_21.flashcards.entities.customer.Customer;
 import com.PAP_team_21.flashcards.entities.deck.Deck;
 import com.PAP_team_21.flashcards.entities.flashcard.Flashcard;
-import com.PAP_team_21.flashcards.entities.flashcard.FlashcardService;
 import com.PAP_team_21.flashcards.entities.flashcardProgress.FlashcardProgress;
 import com.PAP_team_21.flashcards.entities.flashcardProgress.FlashcardProgressRepository;
 import com.PAP_team_21.flashcards.entities.reviewLog.ReviewLog;

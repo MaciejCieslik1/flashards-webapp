@@ -4,7 +4,7 @@ import com.PAP_team_21.flashcards.controllers.requests.UserPreferencesUpdateRequ
 import com.PAP_team_21.flashcards.entities.JsonViewConfig;
 import com.PAP_team_21.flashcards.entities.customer.Customer;
 import com.PAP_team_21.flashcards.entities.customer.CustomerRepository;
-import com.PAP_team_21.flashcards.entities.customer.CustomerService;
+import com.PAP_team_21.flashcards.services.CustomerService;
 import com.PAP_team_21.flashcards.entities.userPreferences.UserPreferences;
 import com.PAP_team_21.flashcards.entities.userPreferences.UserPreferencesRepository;
 import com.fasterxml.jackson.annotation.JsonView;

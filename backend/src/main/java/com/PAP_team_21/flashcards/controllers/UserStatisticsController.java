@@ -4,7 +4,7 @@ import com.PAP_team_21.flashcards.controllers.DTOMappers.UserStatisticsMapper;
 import com.PAP_team_21.flashcards.controllers.requests.UserStatisticsUpdateRequest;
 import com.PAP_team_21.flashcards.entities.customer.Customer;
 import com.PAP_team_21.flashcards.entities.customer.CustomerRepository;
-import com.PAP_team_21.flashcards.entities.customer.CustomerService;
+import com.PAP_team_21.flashcards.services.CustomerService;
 import com.PAP_team_21.flashcards.entities.userStatistics.UserStatistics;
 import com.PAP_team_21.flashcards.entities.userStatistics.UserStatisticsRepository;
 import lombok.RequiredArgsConstructor;

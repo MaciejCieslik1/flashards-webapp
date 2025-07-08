@@ -1,5 +1,7 @@
-package com.PAP_team_21.flashcards.entities.deck;
+package com.PAP_team_21.flashcards.services;
 
+import com.PAP_team_21.flashcards.entities.deck.Deck;
+import com.PAP_team_21.flashcards.entities.deck.DeckRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

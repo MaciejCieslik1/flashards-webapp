@@ -5,7 +5,7 @@ import com.PAP_team_21.flashcards.controllers.requests.NotificationCreationReque
 import com.PAP_team_21.flashcards.entities.JsonViewConfig;
 import com.PAP_team_21.flashcards.entities.customer.Customer;
 import com.PAP_team_21.flashcards.entities.customer.CustomerRepository;
-import com.PAP_team_21.flashcards.entities.customer.CustomerService;
+import com.PAP_team_21.flashcards.services.CustomerService;
 import com.PAP_team_21.flashcards.entities.notification.Notification;
 import com.PAP_team_21.flashcards.entities.notification.NotificationRepository;
 import com.fasterxml.jackson.annotation.JsonView;

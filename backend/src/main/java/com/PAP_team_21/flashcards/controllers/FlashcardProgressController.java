@@ -3,7 +3,7 @@ package com.PAP_team_21.flashcards.controllers;
 import com.PAP_team_21.flashcards.AccessLevel;
 import com.PAP_team_21.flashcards.entities.JsonViewConfig;
 import com.PAP_team_21.flashcards.entities.customer.Customer;
-import com.PAP_team_21.flashcards.entities.customer.CustomerService;
+import com.PAP_team_21.flashcards.services.CustomerService;
 import com.PAP_team_21.flashcards.entities.deck.Deck;
 import com.PAP_team_21.flashcards.entities.flashcard.Flashcard;
 import com.PAP_team_21.flashcards.entities.flashcardProgress.FlashcardProgress;

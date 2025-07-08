@@ -5,22 +5,12 @@ import com.PAP_team_21.flashcards.authentication.AuthenticationResponse;
 import com.PAP_team_21.flashcards.authentication.AuthenticationService.AuthenticationService;
 import com.PAP_team_21.flashcards.authentication.RegisterRequest;
 import com.PAP_team_21.flashcards.controllers.requests.*;
-import com.PAP_team_21.flashcards.entities.customer.Customer;
-import com.PAP_team_21.flashcards.entities.customer.CustomerRepository;
-import com.PAP_team_21.flashcards.entities.login.Login;
-import com.PAP_team_21.flashcards.entities.login.LoginRepository;
-import com.PAP_team_21.flashcards.entities.userStatistics.UserStatistics;
-import com.PAP_team_21.flashcards.entities.userStatistics.UserStatisticsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -28,9 +18,6 @@ import java.util.stream.Collectors;
 public class AuthenticationController {
 
     private final AuthenticationService authenticationService;
-    private final CustomerRepository customerRepository;
-    private final LoginRepository loginRepository;
-    private final UserStatisticsRepository userStatisticsRepository;
 
     @GetMapping("/oauth2/success")
     public  ResponseEntity<?> oauth2Success(Authentication authentication) {
@@ -58,25 +45,9 @@ public class AuthenticationController {
 
     @PostMapping("/usernamePasswordLogin")
     public ResponseEntity<?> usernamePasswordLogin(
-            @RequestBody AuthenticationRequest request
-    ){
-        try{
-            String email = request.getEmail();
-            Optional<Customer> customerOpt = customerRepository.findByEmail(email);
-            if (customerOpt.isPresent()) {
-                Customer customer = customerOpt.get();
-                Login login = new Login(customer.getId());
-                loginRepository.save(login);
-
-                List<LocalDate> loginDates = userStatisticsRepository.getGithubStyleChartData(customer.getId())
-                        .stream()
-                        .map(java.sql.Date::toLocalDate)
-                        .collect(Collectors.toList());
-
-                UserStatistics userStatistics = customer.getUserStatistics();
-                userStatistics.updateStreak(loginDates);
-                userStatisticsRepository.save(userStatistics);
-            }
+            @RequestBody AuthenticationRequest request) {
+        try {
+            authenticationService.updateUserInfo(request);
             return ResponseEntity.ok(new AuthenticationResponse(authenticationService.loginUser(request.getEmail(), request.getPassword())));
         } catch(AuthenticationException e)
         {

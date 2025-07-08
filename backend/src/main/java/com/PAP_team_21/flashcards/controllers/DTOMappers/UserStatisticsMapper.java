@@ -2,7 +2,7 @@ package com.PAP_team_21.flashcards.controllers.DTOMappers;
 
 import com.PAP_team_21.flashcards.controllers.DTO.UserStatisticsDTO;
 import com.PAP_team_21.flashcards.entities.customer.Customer;
-import com.PAP_team_21.flashcards.entities.flashcard.FlashcardService;
+import com.PAP_team_21.flashcards.services.FlashcardService;
 import com.PAP_team_21.flashcards.entities.userStatistics.UserStatistics;
 import com.PAP_team_21.flashcards.entities.userStatistics.UserStatisticsRepository;
 import lombok.RequiredArgsConstructor;

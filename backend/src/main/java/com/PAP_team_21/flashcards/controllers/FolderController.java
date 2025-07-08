@@ -14,7 +14,7 @@ import com.PAP_team_21.flashcards.entities.customer.Customer;
 import com.PAP_team_21.flashcards.entities.customer.CustomerRepository;
 import com.PAP_team_21.flashcards.entities.deck.Deck;
 import com.PAP_team_21.flashcards.entities.folder.Folder;
-import com.PAP_team_21.flashcards.entities.folder.FolderService;
+import com.PAP_team_21.flashcards.services.FolderService;
 import com.fasterxml.jackson.annotation.JsonView;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;

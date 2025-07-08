@@ -1,5 +1,7 @@
-package com.PAP_team_21.flashcards.entities.flashcard;
+package com.PAP_team_21.flashcards.services;
 
+import com.PAP_team_21.flashcards.entities.flashcard.Flashcard;
+import com.PAP_team_21.flashcards.entities.flashcard.FlashcardRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

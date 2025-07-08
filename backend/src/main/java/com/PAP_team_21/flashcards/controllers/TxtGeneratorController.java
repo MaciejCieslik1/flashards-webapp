@@ -5,7 +5,7 @@ import com.PAP_team_21.flashcards.entities.TxtGenerator;
 import com.PAP_team_21.flashcards.entities.customer.Customer;
 import com.PAP_team_21.flashcards.entities.customer.CustomerRepository;
 import com.PAP_team_21.flashcards.entities.deck.Deck;
-import com.PAP_team_21.flashcards.entities.deck.DeckService;
+import com.PAP_team_21.flashcards.services.DeckService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;

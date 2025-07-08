@@ -3,7 +3,7 @@ package com.PAP_team_21.flashcards.controllers.DTOMappers;
 import com.PAP_team_21.flashcards.controllers.DTO.DeckDTO;
 import com.PAP_team_21.flashcards.entities.customer.Customer;
 import com.PAP_team_21.flashcards.entities.deck.Deck;
-import com.PAP_team_21.flashcards.entities.deck.DeckService;
+import com.PAP_team_21.flashcards.services.DeckService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

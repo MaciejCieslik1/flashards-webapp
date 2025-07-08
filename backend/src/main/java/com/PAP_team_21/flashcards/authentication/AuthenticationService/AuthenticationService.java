@@ -3,10 +3,13 @@ package com.PAP_team_21.flashcards.authentication.AuthenticationService;
 import com.PAP_team_21.flashcards.Errors.AlreadyVerifiedException;
 import com.PAP_team_21.flashcards.Errors.ResourceNotFoundException;
 import com.PAP_team_21.flashcards.authentication.AuthenticationEmailSender.AuthenticationEmailSender;
+import com.PAP_team_21.flashcards.authentication.AuthenticationRequest;
 import com.PAP_team_21.flashcards.entities.customer.Customer;
 import com.PAP_team_21.flashcards.entities.customer.CustomerRepository;
 import com.PAP_team_21.flashcards.entities.folderAccessLevel.FolderAccessLevel;
 import com.PAP_team_21.flashcards.entities.folderAccessLevel.FolderAccessLevelRepository;
+import com.PAP_team_21.flashcards.entities.login.Login;
+import com.PAP_team_21.flashcards.entities.login.LoginRepository;
 import com.PAP_team_21.flashcards.entities.sentVerificationCodes.SentVerificationCode;
 import com.PAP_team_21.flashcards.entities.sentVerificationCodes.SentVerificationCodeRepository;
 import com.PAP_team_21.flashcards.entities.userPreferences.UserPreferences;
@@ -29,9 +32,12 @@ import org.springframework.stereotype.Service;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -45,6 +51,7 @@ public class AuthenticationService {
     private final AuthenticationEmailSender emailSender;
     private final UserPreferencesRepository userPreferencesRepository;
     private final UserStatisticsRepository userStatisticsRepository;
+    private final LoginRepository loginRepository;
 
 
     private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -354,5 +361,24 @@ public class AuthenticationService {
         Customer customer = extractCustomer(authentication);
         customer.setEmail(newEmail);
         customerRepository.save(customer);
+    }
+
+    public void updateUserInfo(AuthenticationRequest request) {
+        String email = request.getEmail();
+        Optional<Customer> customerOpt = customerRepository.findByEmail(email);
+        if (customerOpt.isPresent()) {
+            Customer customer = customerOpt.get();
+            Login login = new Login(customer.getId());
+            loginRepository.save(login);
+
+            List<LocalDate> loginDates = userStatisticsRepository.getGithubStyleChartData(customer.getId())
+                    .stream()
+                    .map(java.sql.Date::toLocalDate)
+                    .collect(Collectors.toList());
+
+            UserStatistics userStatistics = customer.getUserStatistics();
+            userStatistics.updateStreak(loginDates);
+            userStatisticsRepository.save(userStatistics);
+        }
     }
 }

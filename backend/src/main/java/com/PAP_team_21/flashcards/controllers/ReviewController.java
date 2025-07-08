@@ -1,7 +1,7 @@
 package com.PAP_team_21.flashcards.controllers;
 
 import com.PAP_team_21.flashcards.Errors.ResourceNotFoundException;
-import com.PAP_team_21.flashcards.ReviewService.ReviewService;
+import com.PAP_team_21.flashcards.services.ReviewService;
 import com.PAP_team_21.flashcards.authentication.ResourceAccessLevelService.DeckAccessServiceResponse;
 import com.PAP_team_21.flashcards.authentication.ResourceAccessLevelService.FlashcardAccessServiceResponse;
 import com.PAP_team_21.flashcards.authentication.ResourceAccessLevelService.ResourceAccessService;
