@@ -1,6 +1,11 @@
 package com.PAP_team_21.flashcards.services;
 
+import com.PAP_team_21.flashcards.Errors.NoPermissionException;
 import com.PAP_team_21.flashcards.UserAnswer;
+import com.PAP_team_21.flashcards.authentication.ResourceAccessLevelService.DeckAccessServiceResponse;
+import com.PAP_team_21.flashcards.authentication.ResourceAccessLevelService.FlashcardAccessServiceResponse;
+import com.PAP_team_21.flashcards.authentication.ResourceAccessLevelService.ResourceAccessService;
+import com.PAP_team_21.flashcards.controllers.requests.FlashcardsReviewedRequest;
 import com.PAP_team_21.flashcards.entities.customer.Customer;
 import com.PAP_team_21.flashcards.entities.deck.Deck;
 import com.PAP_team_21.flashcards.entities.flashcard.Flashcard;
@@ -8,10 +13,10 @@ import com.PAP_team_21.flashcards.entities.flashcardProgress.FlashcardProgress;
 import com.PAP_team_21.flashcards.entities.flashcardProgress.FlashcardProgressRepository;
 import com.PAP_team_21.flashcards.entities.reviewLog.ReviewLog;
 import com.PAP_team_21.flashcards.entities.reviewLog.ReviewLogRepository;
-import com.PAP_team_21.flashcards.entities.userStatistics.UserStatisticsRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -22,9 +27,9 @@ import java.util.*;
 public class ReviewService {
 
     private final FlashcardService flashcardService;
+    private final DeckService deckService;
+    private final ResourceAccessService resourceAccessService;
     private final FlashcardProgressRepository flashcardProgressRepository;
-
-    private final UserStatisticsRepository userStatisticsRepository;
     private final ReviewLogRepository reviewLogRepository;
 
     @Value("${scheduling.max_flashcard_learning}")
@@ -47,15 +52,27 @@ public class ReviewService {
 
     @Value("${scheduling.last_review_constant}")
     private int lastReviewConstant;
-    
+
     @Transactional
-    public List<Flashcard> reviewDeck(Customer customer, Deck deck, int batchSize)
-    {
+    public List<Flashcard> reviewDeck(Authentication authentication, int deckId, int batchSize) {
+        if (batchSize < 10)
+            throw new IllegalArgumentException("Batch size must be at least 10");
+
+        DeckAccessServiceResponse response = resourceAccessService.getDeckAccessLevel(authentication, deckId,
+                deckService);
+        if (response.getAccessLevel() == null) {
+            throw new NoPermissionException("You do not have access to this deck");
+        }
+        return this.batchPreparation(response.getCustomer(), response.getDeck(), batchSize);
+    }
+
+    @Transactional
+    public List<Flashcard> batchPreparation(Customer customer, Deck deck, int batchSize) {
         // !!! to be defined later !!!
         Duration review_gap_constant = Duration.ofMinutes(reviewGapConst);
         Duration last_review_constant = Duration.ofMinutes(lastReviewConstant);
 
-        // flashcards in learining, including those that are not due
+        // flashcards in learning, including those that are not due
         int totalInLearningCnt = flashcardService.countCurrentlyLearning(customer.getId(),
                 deck.getId(),
                 review_gap_constant,
@@ -75,8 +92,7 @@ public class ReviewService {
         ArrayList<Flashcard> result = new ArrayList<>();
 
         // how many flashcards of type a we want in returned batch
-        int typeAFlashcardsCnt = (int) (learningRatio*batchSize);
-        int typeBFlashcardsCnt = batchSize - typeAFlashcardsCnt;
+        int typeAFlashcardsCnt = (int) (learningRatio * batchSize);
 
 
         if(totalDue < batchSize) // due cards do not fill the batch
@@ -121,7 +137,7 @@ public class ReviewService {
             // try to fill to learningRatio with typeA
                 // if  learningRatio was not reached, try to fill to the learning ratio with new cards
             // try to fill the rest with typeB
-            // fill the rest with remaing flashcards of typeA ( theoretically, this is possible or all the list is filled)
+            // fill the rest with remaining flashcards of typeA ( theoretically, this is possible or all the list is filled)
 
             List<Flashcard> dueInLearning = flashcardService.getDueInLearning(customer.getId(),
                     deck.getId(),
@@ -169,8 +185,6 @@ public class ReviewService {
                     result.addAll(newFlashcards);
                 }
             }
-
-
         }
 
 
@@ -178,7 +192,7 @@ public class ReviewService {
         return result;
     }
 
-    private Duration muliplyDurationWithSecondPercision(Duration duration, float multiplier)
+    private Duration multiplyDurationWithSecondPrecision(Duration duration, float multiplier)
     {
         return Duration.ofSeconds((long) (duration.getSeconds()*multiplier));
     }
@@ -204,7 +218,7 @@ public class ReviewService {
             return LocalDateTime.now().plus(Duration.ofSeconds(1));
         }
 
-        Duration tillNextReview = muliplyDurationWithSecondPercision(knowledgeGap, getMultiplier(answer));
+        Duration tillNextReview = multiplyDurationWithSecondPrecision(knowledgeGap, getMultiplier(answer));
         if(tillNextReview.toDays() >= 365) {
             tillNextReview = Duration.ofDays(365);
         }
@@ -239,5 +253,17 @@ public class ReviewService {
             progress.get().setNext_review(getNextReview(progress.get().getLastReviewLog().getWhen(), progress.get().getNext_review(), userAnswer));
             flashcardProgressRepository.save(progress.get());
         }
+    }
+
+    public String FlashcardReviewed(Authentication authentication, FlashcardsReviewedRequest reviewResponse) {
+        FlashcardAccessServiceResponse response = resourceAccessService.getFlashcardAccessLevel(authentication,
+                reviewResponse.getFlashcardId(), flashcardService);
+
+        if (response.getAccessLevel() == null) {
+            throw new NoPermissionException("You do not have access to this flashcard");
+        }
+
+        this.flashcardReviewed(response.getCustomer(), response.getFlashcard(), reviewResponse.getUserAnswer());
+        return "Flashcard reviewed";
     }
 }

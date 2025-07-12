@@ -19,8 +19,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ResourceAccessService {
     private final CustomerRepository customerRepository;
-    private final DeckService deckService;
-    private final FlashcardService flashcardService;
     private final FolderJpaRepository folderJpaRepository;
 
     private Customer getCustomer(Authentication authentication) throws ResourceNotFoundException
@@ -44,19 +42,21 @@ public class ResourceAccessService {
         return new FolderAccessServiceResponse(folder.get(), folder.get().getAccessLevel(customer), customer);
     }
 
-    public DeckAccessServiceResponse getDeckAccessLevel(Authentication authentication, int deckId) throws ResourceNotFoundException
+    public DeckAccessServiceResponse getDeckAccessLevel(Authentication authentication, int deckId,
+                                                        DeckService deckService) throws ResourceNotFoundException
     {
         Customer customer = getCustomer(authentication);
 
-        Optional<Deck> deck =  deckService.findById(deckId);
+        Optional<Deck> deck = deckService.findById(deckId);
         if(deck.isEmpty())
             throw new ResourceNotFoundException("Deck not found");
 
         return new DeckAccessServiceResponse(deck.get(), deck.get().getAccessLevel(customer), customer);
     }
 
-    public FlashcardAccessServiceResponse getFlashcardAccessLevel(Authentication authentication, int flashcardId)
-    {
+    public FlashcardAccessServiceResponse getFlashcardAccessLevel(Authentication authentication,
+                                                                  int flashcardId,
+                                                                  FlashcardService flashcardService) {
         Customer customer = getCustomer(authentication);
 
         Optional<Flashcard> flashcard = flashcardService.findById(flashcardId);

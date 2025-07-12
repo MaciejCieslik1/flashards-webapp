@@ -1,31 +1,22 @@
 package com.PAP_team_21.flashcards.controllers;
 
-import com.PAP_team_21.flashcards.AccessLevel;
-import com.PAP_team_21.flashcards.Errors.ResourceNotFoundException;
-import com.PAP_team_21.flashcards.authentication.ResourceAccessLevelService.FolderAccessServiceResponse;
-import com.PAP_team_21.flashcards.authentication.ResourceAccessLevelService.ResourceAccessService;
-import com.PAP_team_21.flashcards.controllers.DTOMappers.DeckMapper;
-import com.PAP_team_21.flashcards.controllers.DTOMappers.FolderMapper;
+import com.PAP_team_21.flashcards.controllers.DTO.DeckDTO;
+import com.PAP_team_21.flashcards.controllers.DTO.FolderBasicDTO;
 import com.PAP_team_21.flashcards.controllers.requests.FolderCreationRequest;
 import com.PAP_team_21.flashcards.controllers.requests.FolderUpdateRequest;
 import com.PAP_team_21.flashcards.controllers.requests.ShareFolderRequest;
 import com.PAP_team_21.flashcards.entities.JsonViewConfig;
-import com.PAP_team_21.flashcards.entities.customer.Customer;
-import com.PAP_team_21.flashcards.entities.customer.CustomerRepository;
 import com.PAP_team_21.flashcards.entities.deck.Deck;
 import com.PAP_team_21.flashcards.entities.folder.Folder;
+import com.PAP_team_21.flashcards.entities.folderAccessLevel.FolderAccessLevel;
 import com.PAP_team_21.flashcards.services.FolderService;
 import com.fasterxml.jackson.annotation.JsonView;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 @RestController
@@ -34,10 +25,6 @@ import java.util.Set;
 public class FolderController {
 
     private final FolderService folderService;
-    private final CustomerRepository customerRepository;
-    private final ResourceAccessService resourceAccessService;
-    private final DeckMapper deckMapper;
-    private final FolderMapper folderMapper;
 
     @GetMapping("/getFolderStructure")
     @JsonView(JsonViewConfig.Public.class)
@@ -46,190 +33,111 @@ public class FolderController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size,
             @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "true") boolean ascending
-    )
-    {
-        Sort sort = ascending ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-        Pageable pageable = PageRequest.of(page, size, sort);
+            @RequestParam(defaultValue = "true") boolean ascending) {
         
-        String email = authentication.getName();
-        Optional<Customer> customer = customerRepository.findByEmail(email);
-
-        if(customer.isPresent())
-        {
-            return ResponseEntity.ok(customer.get().getRootFolder());
+        try {
+            Folder folder = folderService.getFolderStructure(authentication);
+            return ResponseEntity.ok(folder);
         }
-        return ResponseEntity.badRequest().body("No user with this id found");
+        catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @GetMapping("/getAllFolders")
-    public ResponseEntity<?> getAllFolders(
-            Authentication authentication
-    )
-    {
-
-        String email = authentication.getName();
-        Optional<Customer> customer = customerRepository.findByEmail(email);
-        if(customer.isEmpty())
-        {
-            return ResponseEntity.badRequest().body("No user with this id found");
+    public ResponseEntity<?> getAllFolders(Authentication authentication) {
+        try {
+            List<FolderBasicDTO> folders = folderService.getAllFolders(authentication);
+            return ResponseEntity.ok(folders);
         }
-
-        List<Folder> folders = folderService.findAllUserFolders(customer.get().getId());
-        return ResponseEntity.ok(folderMapper.toDTO(folders));
+        catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PostMapping("/create")
     public ResponseEntity<?> createFolder(Authentication authentication,
-                                          @RequestBody FolderCreationRequest request
-    ) {
-        FolderAccessServiceResponse response;
+                                          @RequestBody FolderCreationRequest request) {
         try {
-             response = resourceAccessService.getFolderAccessLevel(authentication, request.getParentId());
-        } catch (ResourceNotFoundException e) {
+            String communicate = folderService.createFolder(authentication, request);
+            return ResponseEntity.ok(communicate);
+        }
+        catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
-
-        Folder parentFolder = response.getFolder();
-        AccessLevel userAccessLevel = response.getAccessLevel();
-        Customer customer = response.getCustomer();
-
-        if(userAccessLevel != null && (userAccessLevel.equals(AccessLevel.EDITOR) || userAccessLevel.equals(AccessLevel.OWNER)))
-        {
-            Folder folder = new Folder(request.getName(), customer, parentFolder);
-            folderService.save(folder);
-            return ResponseEntity.ok("folder created!");
-        }
-        return ResponseEntity.badRequest().body("You do not have permission to create a folder here");
     }
 
     @PostMapping("/update")
-    public ResponseEntity<?> updateFolder(Authentication authentication,@RequestBody FolderUpdateRequest request) {
-
-        FolderAccessServiceResponse response;
+    public ResponseEntity<?> updateFolder(Authentication authentication,
+                                          @RequestBody FolderUpdateRequest request) {
         try {
-            response = resourceAccessService.getFolderAccessLevel(authentication, request.getId());
-        } catch (ResourceNotFoundException e) {
+            String communicate = folderService.updateFolder(authentication, request);
+            return ResponseEntity.ok(communicate);
+        }
+        catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
-
-        if(response.getAccessLevel() != null && (response.getAccessLevel().equals(AccessLevel.OWNER) || response.getAccessLevel().equals(AccessLevel.EDITOR)))
-        {
-            Folder folder = response.getFolder();
-            folder.setName(request.getName());
-            folderService.save(folder);
-            return ResponseEntity.ok("folder updated");
-        }
-
-        return ResponseEntity.badRequest().body("You do not have permission to update this folder");
     }
 
     @DeleteMapping("/delete")
     public ResponseEntity<?> deleteFolder(Authentication authentication, @RequestParam int folderId) {
-        FolderAccessServiceResponse response;
         try {
-            response = resourceAccessService.getFolderAccessLevel(authentication, folderId);
-        } catch (ResourceNotFoundException e) {
+            String communicate = folderService.deleteFolder(authentication, folderId);
+            return ResponseEntity.ok(communicate);
+        }
+        catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
-
-        if(response.getFolder().equals(response.getCustomer().getRootFolder()))
-            return ResponseEntity.badRequest().body("You cannot delete the root folder");
-
-        if(response.getAccessLevel() != null && response.getAccessLevel().equals(AccessLevel.OWNER))
-        {
-            folderService.delete(folderId);
-            return ResponseEntity.ok("folder deleted");
-        }
-
-        return ResponseEntity.badRequest().body("You do not have permission to delete this folder");
     }
 
     @GetMapping("/getRootFolder")
     @JsonView(JsonViewConfig.Public.class)
     public ResponseEntity<?> getRootFolder(Authentication authentication) {
-        String email = authentication.getName();
-        Optional<Customer> customerOpt= customerRepository.findByEmail(email);
-        if(customerOpt.isEmpty())
-        {
-            return ResponseEntity.badRequest().body("No user with this id found");
+        try {
+            Folder folder = folderService.getRootFolder(authentication);
+            return ResponseEntity.ok(folder);
         }
-        Customer customer = customerOpt.get();
-
-        Folder rootFolder = customer.getRootFolder();
-        return ResponseEntity.ok(rootFolder);
+        catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PostMapping("/shareFolder")
-    public ResponseEntity<?> shareFolder(Authentication authentication, @RequestBody ShareFolderRequest request)
-    {
-        FolderAccessServiceResponse response;
+    public ResponseEntity<?> shareFolder(Authentication authentication, @RequestBody ShareFolderRequest request) {
         try {
-            response = resourceAccessService.getFolderAccessLevel(authentication, request.getFolderId());
-        } catch (ResourceNotFoundException e) {
+            String communicate = folderService.shareFolder(authentication, request);
+            return ResponseEntity.ok(communicate);
+        }
+        catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
-
-        AccessLevel al = response.getAccessLevel();
-
-        if(al.equals(AccessLevel.EDITOR) || al.equals(AccessLevel.OWNER) || al.equals(AccessLevel.VIEWER)) {
-            Optional<Customer> friendOpt = customerRepository.findByEmail(request.getAddresseeEmail());
-            if (friendOpt.isPresent()) {
-                folderService.prepareFolderToShare(response.getFolder(), friendOpt.get(), response.getAccessLevel());
-                return ResponseEntity.ok("Folder shared successfully");
-            }
-            return ResponseEntity.badRequest().body("Friend not found");
-        }
-        return ResponseEntity.badRequest().body("You do not have permission to view this folder");
     }
-
 
     @GetMapping("/getAllDecks")
     @JsonView(JsonViewConfig.Public.class)
     public ResponseEntity<?> getAllDecks(
             Authentication authentication,
-            @RequestParam int folderId
-    )
-    {
-        FolderAccessServiceResponse response;
+            @RequestParam int folderId) {
         try {
-            response = resourceAccessService.getFolderAccessLevel(authentication, folderId);
-        } catch (ResourceNotFoundException e) {
+            List<Deck> decks = folderService.getAllDecks(authentication, folderId);
+            return ResponseEntity.ok(decks);
+        }
+        catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
-        AccessLevel al = response.getAccessLevel();
-        Folder folder = response.getFolder();
-
-        if(al != null && (al.equals(AccessLevel.EDITOR) || al.equals(AccessLevel.OWNER)))
-        {
-            List<Deck> decks = folder.getDecks();
-            return ResponseEntity.ok(decks);
-
-        }
-        return ResponseEntity.badRequest().body("You do not have permission to view this folder");
     }
 
     @GetMapping("/getAllDecksInfo")
     public ResponseEntity<?> getAllDecksInfo(
             Authentication authentication,
-            @RequestParam int folderId
-    )
-    {
-        FolderAccessServiceResponse response;
+            @RequestParam int folderId) {
         try {
-            response = resourceAccessService.getFolderAccessLevel(authentication, folderId);
-        } catch (ResourceNotFoundException e) {
+            List<DeckDTO> deckDTOs = folderService.getAllDecksInfo(authentication, folderId);
+            return ResponseEntity.ok(deckDTOs);
+        }
+        catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
-        AccessLevel al = response.getAccessLevel();
-        Folder folder = response.getFolder();
-
-        if(al != null && (al.equals(AccessLevel.EDITOR) || al.equals(AccessLevel.OWNER)))
-        {
-            List<Deck> decks = folder.getDecks();
-            return ResponseEntity.ok(deckMapper.toDTO(response.getCustomer(), decks));
-        }
-        return ResponseEntity.badRequest().body("You do not have permission to view this folder");
     }
 
     @GetMapping("/getDecks")
@@ -240,29 +148,14 @@ public class FolderController {
             @RequestParam(defaultValue = "5") int size,
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "true") boolean ascending,
-            @RequestParam int folderId
-    )
-    {
-        FolderAccessServiceResponse response;
-        try {
-            response = resourceAccessService.getFolderAccessLevel(authentication, folderId);
-        }
-        catch (ResourceNotFoundException e) {
+            @RequestParam int folderId) {
+       try {
+           List<Deck> decks = folderService.getDecks(authentication, folderId, page, size, sortBy, ascending);
+           return ResponseEntity.ok(decks);
+       }
+       catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
-        }
-        AccessLevel al = response.getAccessLevel();
-        Folder folder = response.getFolder();
-        if(al != null && (al.equals(AccessLevel.EDITOR) || al.equals(AccessLevel.OWNER)))
-        {
-            try{
-                List<Deck> decks = folder.getDecks(page, size, sortBy, ascending);
-                return ResponseEntity.ok(decks);
-            } catch(IllegalArgumentException e)
-            {
-                return ResponseEntity.badRequest().body("Invalid sort field, cannot sort by: "  + sortBy);
-            }
-        }
-        return ResponseEntity.badRequest().body("You do not have permission to view this folder");
+       }
     }
 
     @GetMapping("/getDecksInfo")
@@ -272,92 +165,51 @@ public class FolderController {
             @RequestParam(defaultValue = "5") int size,
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "true") boolean ascending,
-            @RequestParam int folderId
-    )
-    {
-        FolderAccessServiceResponse response;
+            @RequestParam int folderId) {
         try {
-            response = resourceAccessService.getFolderAccessLevel(authentication, folderId);
-        } catch (ResourceNotFoundException e) {
+            List<DeckDTO> deckDTOs = folderService.getDecksInfo(authentication, folderId, page, size, sortBy,
+                    ascending);
+            return ResponseEntity.ok(deckDTOs);
+        }
+        catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
-        AccessLevel al = response.getAccessLevel();
-        Folder folder = response.getFolder();
-
-        if(al != null && (al.equals(AccessLevel.EDITOR) || al.equals(AccessLevel.OWNER)))
-        {
-            try{
-                List<Deck> decks = folder.getDecks(page, size, sortBy, ascending);
-                return ResponseEntity.ok(deckMapper.toDTO(response.getCustomer(), decks));
-            } catch(IllegalArgumentException e)
-            {
-                return ResponseEntity.badRequest().body("Invalid sort field, cannot sort by: "  + sortBy);
-            }
-        }
-        return ResponseEntity.badRequest().body("You do not have permission to view this folder");
     }
 
     @GetMapping("/children")
     @JsonView(JsonViewConfig.Public.class)
     public ResponseEntity<?> getFoldersChildren(Authentication authentication, @RequestParam int folderId) {
-
-        FolderAccessServiceResponse response;
         try {
-            response = resourceAccessService.getFolderAccessLevel(authentication, folderId);
-        } catch (ResourceNotFoundException e) {
+            Set<Folder> folders = folderService.getFoldersChildren(authentication, folderId);
+            return ResponseEntity.ok(folders);
+        }
+        catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
-
-        Folder folder = response.getFolder();
-        AccessLevel al = response.getAccessLevel();
-        if(al != null)
-        {
-            Set<Folder> children = folder.getChildren();
-            return ResponseEntity.ok(children);
-        }
-
-        return ResponseEntity.badRequest().body("You do not have permission to view this folder");
     }
 
     @GetMapping("/accessLevels")
     @JsonView(JsonViewConfig.Public.class)
     public ResponseEntity<?> getFoldersAccessLevel(Authentication authentication, @RequestParam int folderId) {
-        FolderAccessServiceResponse response;
         try {
-            response = resourceAccessService.getFolderAccessLevel(authentication, folderId);
-        } catch (ResourceNotFoundException e) {
+            List<FolderAccessLevel> folderAccessLevels = folderService.getFoldersAccessLevel(authentication,
+                    folderId);
+            return ResponseEntity.ok(folderAccessLevels);
+        }
+        catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
-
-        Folder folder = response.getFolder();
-        AccessLevel al = response.getAccessLevel();
-
-        if(al != null)
-        {
-            return ResponseEntity.ok(folder.getAccessLevels());
-        }
-
-        return ResponseEntity.badRequest().body("You do not have permission to view to view access levels of this folder");
     }
 
     @GetMapping("/getFolder")
     @JsonView(JsonViewConfig.Public.class)
     public ResponseEntity<?> getFolder(Authentication authentication, @RequestParam int folderId) {
-        FolderAccessServiceResponse response;
         try {
-            response = resourceAccessService.getFolderAccessLevel(authentication, folderId);
-        } catch (ResourceNotFoundException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-
-        Folder folder = response.getFolder();
-        AccessLevel al = response.getAccessLevel();
-
-        if(al != null)
-        {
+            Folder folder = folderService.getFolder(authentication, folderId);
             return ResponseEntity.ok(folder);
         }
-
-        return ResponseEntity.badRequest().body("You do not have permission to view this folder");
+        catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }

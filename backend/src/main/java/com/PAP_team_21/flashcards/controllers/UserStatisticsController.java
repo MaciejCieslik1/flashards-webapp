@@ -1,62 +1,43 @@
 package com.PAP_team_21.flashcards.controllers;
 
-import com.PAP_team_21.flashcards.controllers.DTOMappers.UserStatisticsMapper;
+import com.PAP_team_21.flashcards.controllers.DTO.UserStatisticsDTO;
 import com.PAP_team_21.flashcards.controllers.requests.UserStatisticsUpdateRequest;
-import com.PAP_team_21.flashcards.entities.customer.Customer;
-import com.PAP_team_21.flashcards.entities.customer.CustomerRepository;
-import com.PAP_team_21.flashcards.services.CustomerService;
 import com.PAP_team_21.flashcards.entities.userStatistics.UserStatistics;
-import com.PAP_team_21.flashcards.entities.userStatistics.UserStatisticsRepository;
+import com.PAP_team_21.flashcards.services.UserStatisticsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
-
 @RestController
 @RequestMapping("/userStatistics")
 @RequiredArgsConstructor
 public class UserStatisticsController {
-    private final UserStatisticsRepository userStatisticsRepository;
-    private final CustomerRepository customerRepository;
-    private final CustomerService customerService;
-    private final UserStatisticsMapper userStatisticsMapper;
+    private final UserStatisticsService userStatisticsService;
 
     @GetMapping("/getUserStatistics")
     @Transactional
     public ResponseEntity<?> getUserStatistics(Authentication authentication) {
-        Customer customer;
         try {
-            customer = customerService.checkForLoggedCustomer(authentication);
+            UserStatisticsDTO userStatisticsDTO = userStatisticsService.getUserStatistics(authentication);
+            return ResponseEntity.ok(userStatisticsDTO);
         }
-        catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body("No user with this id found");
+        catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
-
-        UserStatistics userStatistics = customer.getUserStatistics();
-
-        return ResponseEntity.ok(userStatisticsMapper.toDTO(customer, userStatistics));
     }
 
     @PostMapping("/update")
     public ResponseEntity<?> updateUserStatistics(Authentication authentication,
                                                    @RequestBody UserStatisticsUpdateRequest request) {
-        String email = authentication.getName();
-        Optional<Customer> customerOpt = customerRepository.findByEmail(email);
-        if (customerOpt.isEmpty())
-        {
-            return ResponseEntity.badRequest().body("No user with this id found");
+        try {
+            UserStatistics userStatistics = userStatisticsService.updateUserStatistics(authentication,
+                    request);
+            return ResponseEntity.ok(userStatistics);
         }
-        Customer customer = customerOpt.get();
-
-        UserStatistics userStatistics = customer.getUserStatistics();
-
-        userStatistics.setTotalTimeSpent(request.getTotalTimeSpent());
-        userStatistics.setLoginCount(request.getLoginCount());
-        userStatistics.setLastLogin(request.getLastLogin());
-        userStatisticsRepository.save(userStatistics);
-        return ResponseEntity.ok(userStatistics);
+        catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }
