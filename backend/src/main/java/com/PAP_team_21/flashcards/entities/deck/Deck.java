@@ -56,7 +56,6 @@ public class Deck {
     }
 
     public AccessLevel getAccessLevel(Customer customer) {
-        // check if user has access to any of the parent folders
         for(Folder folder : folders) {
             if(folder.getAccessLevel(customer) != null) {
                 return folder.getAccessLevel(customer);
@@ -71,8 +70,6 @@ public class Deck {
                 .sorted(Flashcard.comparatorBy(sortBy, ascending))
                 .limit(size)
                 .collect(Collectors.toList());
-        //return decks.stream().;
-
     }
 
     public Deck() {}
