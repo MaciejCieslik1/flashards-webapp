@@ -11,9 +11,15 @@ const ShareService = {
         return response.data;
     },
 
-    loadDeck: async (filePath, folderId) => {
-        const response = await api.get('/loadDeck', {
-            filePath, folderId
+    loadDeck: async (file, folderId) => {
+        const formData = new FormData();
+        formData.append("fileToLoad", file);
+        formData.append("folderId", folderId);
+
+        const response = await api.post('/loadDeckTxt', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
         });
         return response.data;
     },
